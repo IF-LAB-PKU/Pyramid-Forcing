@@ -1,4 +1,4 @@
-"""Shared test helpers for headkv strategy and composition tests."""
+"""Shared test helpers for pyramidkv strategy and composition tests."""
 from __future__ import annotations
 
 import torch

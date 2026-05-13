@@ -1,6 +1,6 @@
-from wan.modules.attention import attention, headkv_attention
-from headkv.cache import HeadKVCache
-from headkv._mega_cache import MegaCache
+from wan.modules.attention import attention, pyramidkv_attention
+from pyramidkv.cache import PyramidKVCache
+from pyramidkv._mega_cache import MegaCache
 from wan.modules.model import (
     WanRMSNorm,
     rope_apply,
@@ -225,9 +225,9 @@ class CausalWanSelfAttention(nn.Module):
                 x = kv_cache.attend(
                     roped_query, current_start, causal=False, freqs=freqs,
                 )
-            elif isinstance(kv_cache, HeadKVCache):
+            elif isinstance(kv_cache, PyramidKVCache):
                 if getattr(kv_cache, "post_prune_rope", False):
-                    x = headkv_attention(
+                    x = pyramidkv_attention(
                         q=roped_query,
                         k=k,
                         v=v,
@@ -243,7 +243,7 @@ class CausalWanSelfAttention(nn.Module):
                 else:
                     roped_key = causal_rope_apply(
                         k, grid_sizes, freqs, start_frame=current_start_frame, grid_int=grid_int).type_as(v)
-                    x = headkv_attention(
+                    x = pyramidkv_attention(
                         q=roped_query,
                         k=roped_key,
                         v=v,
@@ -292,13 +292,13 @@ class CausalWanSelfAttention(nn.Module):
                 kv_cache["global_end_index"].fill_(current_end)
                 kv_cache["local_end_index"].fill_(local_end_index)
 
-        # Parity dump hook — no-op unless HEADKV_PARITY_DUMP_DIR is set.
+        # Parity dump hook — no-op unless PYRAMIDKV_PARITY_DUMP_DIR is set.
         # x here is [B, L_q, H, D] (pre-flatten, pre-o-projection). Both
         # AdaptiveKVCache and MegaCache paths converge here, so dumping
         # at this exact point lets us align call-by-call across runs to
         # find the first divergence.
         try:
-            from headkv import _parity_dump
+            from pyramidkv import _parity_dump
             if _parity_dump.enabled():
                 _parity_dump.dump_x(x)
         except Exception as _parity_err:  # pragma: no cover
@@ -393,7 +393,7 @@ class CausalWanAttentionBlock(nn.Module):
         # assert e[0].dtype == torch.float32
 
         prompt_v = None
-        if isinstance(kv_cache, HeadKVCache) and getattr(kv_cache, "post_prune_rope", False):
+        if isinstance(kv_cache, PyramidKVCache) and getattr(kv_cache, "post_prune_rope", False):
             if getattr(kv_cache, "prompt_value_cache_enabled", False):
                 cached_prompt_v = None
                 if isinstance(crossattn_cache, dict):

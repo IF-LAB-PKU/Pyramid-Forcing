@@ -1,13 +1,13 @@
-"""Tests for headkv/base.py — HeadComposition."""
+"""Tests for pyramidkv/base.py — HeadComposition."""
 from __future__ import annotations
 
 import torch
 import pytest
 
-from headkv.base import HeadComposition, MiddleStrategy
-from headkv.cyclic import CyclicStrategy
-from headkv.lag import LagStrategy
-from headkv.stride import StrideStrategy
+from pyramidkv.base import HeadComposition, MiddleStrategy
+from pyramidkv.cyclic import CyclicStrategy
+from pyramidkv.lag import LagStrategy
+from pyramidkv.stride import StrideStrategy
 from tests.helpers import make_anchor_data
 
 FS = 4

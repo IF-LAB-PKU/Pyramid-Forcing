@@ -1,4 +1,4 @@
-"""Tests for headkv/factory.py — load_head_labels() and build_compositions()."""
+"""Tests for pyramidkv/factory.py — load_head_labels() and build_compositions()."""
 from __future__ import annotations
 
 import csv
@@ -9,18 +9,18 @@ import torch
 import pytest
 from omegaconf import OmegaConf
 
-from headkv.factory import (
+from pyramidkv.factory import (
     load_head_labels,
     build_compositions,
     _build_bool_map,
     _build_int_map,
     _build_offsets_map,
 )
-from headkv.base import HeadComposition
-from headkv.cyclic import CyclicStrategy
-from headkv.lag import LagStrategy
-from headkv.merge import MergeStrategy
-from headkv.stride import StrideStrategy
+from pyramidkv.base import HeadComposition
+from pyramidkv.cyclic import CyclicStrategy
+from pyramidkv.lag import LagStrategy
+from pyramidkv.merge import MergeStrategy
+from pyramidkv.stride import StrideStrategy
 
 
 def _write_label_csv(path: str, rows: list[list[int]]):

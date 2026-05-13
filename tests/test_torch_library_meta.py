@@ -19,9 +19,9 @@ import torch
 
 def _try_load_or_skip():
     try:
-        from headkv import _ops
+        from pyramidkv import _ops
     except Exception as exc:  # pragma: no cover - import error
-        pytest.skip(f"headkv._ops import failed: {exc}")
+        pytest.skip(f"pyramidkv._ops import failed: {exc}")
         return None
     if not _ops.available():
         pytest.skip("CUDA scatter extension not available")
@@ -42,7 +42,7 @@ class TestTorchLibraryRegistration:
         the legacy _scatter_ext.scatter_copy on identical inputs.
         """
         ops = _try_load_or_skip()
-        from headkv import _scatter_ext
+        from pyramidkv import _scatter_ext
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
         device = torch.device("cuda")
@@ -94,7 +94,7 @@ class TestTorchLibraryRegistration:
 
         ops.apply_pos_override(pos_a, starts, ends, vals)
 
-        from headkv import _scatter_ext
+        from pyramidkv import _scatter_ext
         _scatter_ext.apply_pos_override(pos_b, starts, ends, vals)
         torch.cuda.synchronize()
 
@@ -111,9 +111,9 @@ class TestTorchLibraryRegistration:
         torch.compile / export rely on. We can run this without a GPU.
         """
         try:
-            from headkv import _ops
+            from pyramidkv import _ops
         except Exception as exc:
-            pytest.skip(f"headkv._ops import failed: {exc}")
+            pytest.skip(f"pyramidkv._ops import failed: {exc}")
         if not _ops._ensure_loaded():
             pytest.skip("Extension failed to load")
         ns = torch.ops.adahead

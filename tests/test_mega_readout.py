@@ -7,12 +7,12 @@ the same K/V slice. This pins down:
 
   1. mega_plan correctly enumerates the live slots → cu_seqlens_k matches
      the expected token count.
-  2. headkv_pack correctly gathers pool slices into the flat workspace.
+  2. pyramidkv_pack correctly gathers pool slices into the flat workspace.
   3. flash_attn_varlen_func produces the same output as a manual
      scaled-dot-product attention on the gathered K/V.
 
 This is a single-layer, B=1, H=2 unit test. M3 Day 2 will exercise the
-insertion path (mega_state_update + headkv_update).
+insertion path (mega_state_update + pyramidkv_update).
 """
 from __future__ import annotations
 
@@ -29,14 +29,14 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     pytest.skip("flash-attn not installed", allow_module_level=True)
 
-from headkv import _ops, _mega_state_ops as ops_mod, _mega_state_ref as ref
-from headkv import _mega_attention
+from pyramidkv import _ops, _mega_state_ops as ops_mod, _mega_state_ref as ref
+from pyramidkv import _mega_attention
 
 
 def _make_manager(H, D, FSEQ, max_sink, max_middle, max_recent, L=1,
                   max_attend_chunks=4):
     _ops._ensure_loaded()
-    Cls = torch.classes.adahead.HeadKVCacheManager
+    Cls = torch.classes.adahead.PyramidKVCacheManager
     return Cls(L, H, D, FSEQ, max_sink, max_middle, max_recent,
                "cuda:0", "bfloat16", max_attend_chunks)
 

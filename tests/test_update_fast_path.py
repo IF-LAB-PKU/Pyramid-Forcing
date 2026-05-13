@@ -22,8 +22,8 @@ def device():
 
 
 def _build_cache(device):
-    from headkv.config import HeadKVConfig
-    from headkv.adaptive_cache import AdaptiveKVCache
+    from pyramidkv.config import PyramidKVConfig
+    from pyramidkv.adaptive_cache import AdaptiveKVCache
     from wan.modules.model import rope_params
     import tempfile
 
@@ -39,7 +39,7 @@ def _build_cache(device):
             f.write(f"0,{h},{label}\n")
         config_path = f.name
 
-    config = HeadKVConfig(config_path, num_layers=1, num_heads=num_heads)
+    config = PyramidKVConfig(config_path, num_layers=1, num_heads=num_heads)
     os.unlink(config_path)
 
     cache = AdaptiveKVCache(
@@ -73,7 +73,7 @@ class TestUpdateFastPath:
 
     def test_fast_path_method_exists(self, device):
         """_try_fast_path_noisy_overwrite must exist on AdaptiveKVCache."""
-        from headkv.adaptive_cache import AdaptiveKVCache
+        from pyramidkv.adaptive_cache import AdaptiveKVCache
         assert hasattr(AdaptiveKVCache, "_try_fast_path_noisy_overwrite"), (
             "_try_fast_path_noisy_overwrite method missing — M6-impl not applied"
         )
@@ -102,13 +102,13 @@ class TestUpdateFastPath:
         v_in = torch.randn_like(k_in)
 
         # Slow path: force via env var
-        os.environ["HEADKV_DISABLE_M6_FASTPATH"] = "1"
+        os.environ["PYRAMIDKV_DISABLE_M6_FASTPATH"] = "1"
         try:
             cache_slow.update(k_in.clone(), v_in.clone(),
                               current_start=prev_start, grid_sizes=grid_sizes,
                               freqs=freqs, cache_update_mode="noisy")
         finally:
-            del os.environ["HEADKV_DISABLE_M6_FASTPATH"]
+            del os.environ["PYRAMIDKV_DISABLE_M6_FASTPATH"]
 
         # Fast path
         cache_fast.update(k_in.clone(), v_in.clone(),
@@ -167,13 +167,13 @@ class TestUpdateFastPath:
         k_in = torch.randn(1, block_len, num_heads, head_dim, device=device, dtype=torch.bfloat16)
         v_in = torch.randn_like(k_in)
 
-        os.environ["HEADKV_DISABLE_M6_FASTPATH"] = "1"
+        os.environ["PYRAMIDKV_DISABLE_M6_FASTPATH"] = "1"
         try:
             cache_slow.update(k_in.clone(), v_in.clone(),
                               current_start=prev_start, grid_sizes=grid_sizes,
                               freqs=freqs, cache_update_mode="clean")
         finally:
-            del os.environ["HEADKV_DISABLE_M6_FASTPATH"]
+            del os.environ["PYRAMIDKV_DISABLE_M6_FASTPATH"]
 
         cache_fast.update(k_in.clone(), v_in.clone(),
                           current_start=prev_start, grid_sizes=grid_sizes,

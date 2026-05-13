@@ -21,14 +21,14 @@ torch = pytest.importorskip("torch")
 if not torch.cuda.is_available():  # pragma: no cover
     pytest.skip("CUDA required", allow_module_level=True)
 
-from headkv import _mega_state_ops as ops_mod
-from headkv import _mega_state_ref as ref
-from headkv import _ops
+from pyramidkv import _mega_state_ops as ops_mod
+from pyramidkv import _mega_state_ref as ref
+from pyramidkv import _ops
 
 
 def _make_manager(H=2, D=16, FSEQ=4, max_sink=2, max_middle=4, max_recent=2):
     _ops._ensure_loaded()
-    Cls = torch.classes.adahead.HeadKVCacheManager
+    Cls = torch.classes.adahead.PyramidKVCacheManager
     return Cls(
         1,    # num_layers — single-layer manager for these unit tests
         H, D, FSEQ,

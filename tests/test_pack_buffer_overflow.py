@@ -21,15 +21,15 @@ if not torch.cuda.is_available():  # pragma: no cover
 
 import numpy as np
 
-from headkv import _mega_state_ops as ops_mod
-from headkv import _mega_state_ref as ref
-from headkv import _ops
+from pyramidkv import _mega_state_ops as ops_mod
+from pyramidkv import _mega_state_ref as ref
+from pyramidkv import _ops
 
 
 @pytest.mark.gpu
 def test_mega_plan_multi_rejects_chunk_count_exceeding_capacity():
     _ops._ensure_loaded()
-    Cls = torch.classes.adahead.HeadKVCacheManager
+    Cls = torch.classes.adahead.PyramidKVCacheManager
     H, D, FSEQ = 2, 16, 4
     max_sink, max_middle, max_recent = 2, 4, 2
     # max_attend_chunks=1: pack workspace fits exactly one chunk's worth.

@@ -22,8 +22,8 @@ if not torch.cuda.is_available():  # pragma: no cover — skipped on CPU runners
     pytest.skip("CUDA required for mega_state_update kernel tests",
                 allow_module_level=True)
 
-from headkv import _mega_state_ops as ops_mod
-from headkv import _mega_state_ref as ref
+from pyramidkv import _mega_state_ops as ops_mod
+from pyramidkv import _mega_state_ref as ref
 
 
 def _run_both(states, new_t_vals, pass_kind):
@@ -95,7 +95,7 @@ def _assert_states_match(ref_states, cuda_states):
 # ---------------------------------------------------------------------------
 def test_abi_size_matches_cpp():
     """numpy structured dtype itemsize must equal sizeof(PerHeadState)."""
-    from headkv import _ops  # triggers JIT load
+    from pyramidkv import _ops  # triggers JIT load
     cpp_size = int(_ops.ops().mega_state_perhead_size())
     py_size = ops_mod.PER_HEAD_STATE_DTYPE.itemsize
     assert cpp_size == py_size, (

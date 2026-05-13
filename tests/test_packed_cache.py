@@ -1,4 +1,4 @@
-"""M1.6 part 1 test: HeadKVPackedCache vertical slice.
+"""M1.6 part 1 test: PyramidKVPackedCache vertical slice.
 
 Validates that the (plan, pack, update) ops cohere into a working
 FIFO recent-only KV cache. Compares against a Python reference.
@@ -10,15 +10,15 @@ import torch
 
 
 @pytest.mark.gpu
-class TestHeadKVPackedCache:
+class TestPyramidKVPackedCache:
     def test_fifo_recent_roundtrip(self):
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
-        from headkv.packed_cache import HeadKVPackedCache
+        from pyramidkv.packed_cache import PyramidKVPackedCache
 
         L, H, D, F = 2, 3, 8, 4
         max_recent = 4
-        cache = HeadKVPackedCache(
+        cache = PyramidKVPackedCache(
             num_layers=L, num_heads=H, head_dim=D, frame_seqlen=F,
             max_recent_frames=max_recent,
         )
@@ -83,10 +83,10 @@ class TestHeadKVPackedCache:
         """Fewer writes than max_recent: only valid slots returned."""
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
-        from headkv.packed_cache import HeadKVPackedCache
+        from pyramidkv.packed_cache import PyramidKVPackedCache
 
         L, H, D, F = 1, 2, 4, 4
-        cache = HeadKVPackedCache(
+        cache = PyramidKVPackedCache(
             num_layers=L, num_heads=H, head_dim=D, frame_seqlen=F,
             max_recent_frames=4,
         )

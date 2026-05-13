@@ -1,10 +1,10 @@
-"""Tests for headkv/lag.py — LagStrategy."""
+"""Tests for pyramidkv/lag.py — LagStrategy."""
 from __future__ import annotations
 
 import torch
 import pytest
 
-from headkv.lag import LagStrategy
+from pyramidkv.lag import LagStrategy
 from tests.helpers import make_anchor_data, make_multi_frame_input
 
 FS = 4  # frame_seqlen
@@ -114,10 +114,10 @@ class TestLagCollect:
         baseline.reset(1)
         opt_in.reset(1)
         frames = [make_anchor_data(t, FS, HD) for t in range(13)]
-        monkeypatch.delenv("HEADKV_CONTIG_ANCHOR_STORE", raising=False)
+        monkeypatch.delenv("PYRAMIDKV_CONTIG_ANCHOR_STORE", raising=False)
         for t, (k, v, pos) in enumerate(frames):
             baseline.update(0, k, v, pos, FS, t)
-        monkeypatch.setenv("HEADKV_CONTIG_ANCHOR_STORE", "1")
+        monkeypatch.setenv("PYRAMIDKV_CONTIG_ANCHOR_STORE", "1")
         for t, (k, v, pos) in enumerate(frames):
             opt_in.update(0, k, v, pos, FS, t)
 

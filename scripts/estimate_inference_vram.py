@@ -69,7 +69,7 @@ def _fmt(v: float) -> str:
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Estimate RadicalHeadKV inference VRAM footprint.")
+    p = argparse.ArgumentParser(description="Estimate RadicalPyramidKV inference VRAM footprint.")
     p.add_argument("--config_path", required=True, type=Path)
     p.add_argument("--frames", nargs="+", type=int, default=[72, 240])
     p.add_argument("--num_samples", type=int, default=1)
@@ -95,9 +95,9 @@ def main() -> None:
     osc_lag_history_frames = int(cfg.get("osc_lag_history_frames", 21))
     disable_first_sink_for_osc_heads = bool(cfg.get("disable_first_sink_for_osc_heads", False))
 
-    default_capacity = int(cfg.get("headkv_default_capacity", 32768))
-    code_map = cfg.get("headkv_code_map", {"-1": default_capacity, "1": default_capacity})
-    label_csv = Path(cfg.get("headkv_config_path", ""))
+    default_capacity = int(cfg.get("pyramidkv_default_capacity", 32768))
+    code_map = cfg.get("pyramidkv_code_map", {"-1": default_capacity, "1": default_capacity})
+    label_csv = Path(cfg.get("pyramidkv_config_path", ""))
     if not label_csv.is_absolute():
         label_csv = (Path.cwd() / label_csv).resolve()
 
@@ -169,7 +169,7 @@ def main() -> None:
     max_layer_flat_tokens = max(flat_tokens_per_layer) if flat_tokens_per_layer else 0
     one_layer_flat_kv_bytes = max_layer_flat_tokens * kv_token_bytes
 
-    print("=== RadicalHeadKV VRAM Estimate ===")
+    print("=== RadicalPyramidKV VRAM Estimate ===")
     print(f"config_path: {args.config_path}")
     print(f"label_csv: {label_csv}")
     print(f"layers x heads: {args.num_layers} x {args.num_heads}")

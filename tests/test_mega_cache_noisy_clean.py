@@ -16,9 +16,9 @@ torch = pytest.importorskip("torch")
 if not torch.cuda.is_available():  # pragma: no cover
     pytest.skip("CUDA required", allow_module_level=True)
 
-from headkv import _ops, _mega_cache, _mega_state_ops as ops_mod
-from headkv.base import HeadComposition
-from headkv.stride import StrideStrategy
+from pyramidkv import _ops, _mega_cache, _mega_state_ops as ops_mod
+from pyramidkv.base import HeadComposition
+from pyramidkv.stride import StrideStrategy
 
 _ops._ensure_loaded()
 
@@ -162,7 +162,7 @@ def test_recent_fifo_no_noisy_contamination_across_blocks():
     device = torch.device("cuda:0")
 
     # osc head: sink_capacity=1, recent_frames=4.
-    from headkv.recent import RecentStrategy
+    from pyramidkv.recent import RecentStrategy
     comp = HeadComposition(
         name="recent_only", label=-1,
         sink_frames=1, recent_frames=4,

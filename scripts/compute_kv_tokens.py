@@ -30,10 +30,10 @@ def compute_kv_tokens(
     Returns dict with keys: osc, stable, stable_sparse, and their breakdowns.
     """
     # --- Parse config ---
-    osc_sink = getattr(cfg, "headkv_osc_sink_frames", 1) or 1
-    stable_sink = getattr(cfg, "headkv_stable_sink_frames", 3) or 3
-    osc_recent = getattr(cfg, "headkv_recent_frames", 4)
-    stable_recent = getattr(cfg, "headkv_stable_recent_frames", None)
+    osc_sink = getattr(cfg, "pyramidkv_osc_sink_frames", 1) or 1
+    stable_sink = getattr(cfg, "pyramidkv_stable_sink_frames", 3) or 3
+    osc_recent = getattr(cfg, "pyramidkv_recent_frames", 4)
+    stable_recent = getattr(cfg, "pyramidkv_stable_recent_frames", None)
     if stable_recent is None:
         stable_recent = osc_recent
 

@@ -4,13 +4,13 @@ import tempfile
 import pytest
 import torch
 
-from headkv.adaptive_cache import AdaptiveKVCache
-from headkv.base import HeadComposition
-from headkv.config import HeadKVConfig
-from headkv.cpp_strategy import CppStrategyManager, compile_cpp_strategy_policies
-from headkv.cyclic import CyclicStrategy
-from headkv.merge import MergeStrategy
-from headkv.stride import StrideStrategy
+from pyramidkv.adaptive_cache import AdaptiveKVCache
+from pyramidkv.base import HeadComposition
+from pyramidkv.config import PyramidKVConfig
+from pyramidkv.cpp_strategy import CppStrategyManager, compile_cpp_strategy_policies
+from pyramidkv.cyclic import CyclicStrategy
+from pyramidkv.merge import MergeStrategy
+from pyramidkv.stride import StrideStrategy
 from wan.modules.model import rope_params
 
 
@@ -110,11 +110,11 @@ def test_cpp_strategy_manager_inactive_count_returns_empty_anchor_count():
     assert stats["cpp_strategy_token_count"] == 0.0
 
 
-def _build_config_with_strategy(strategy) -> HeadKVConfig:
+def _build_config_with_strategy(strategy) -> PyramidKVConfig:
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".csv", delete=False) as f:
         f.write("0,0,32\n")
         path = f.name
-    config = HeadKVConfig(path, num_layers=1, num_heads=1)
+    config = PyramidKVConfig(path, num_layers=1, num_heads=1)
     os.unlink(path)
     config.compositions = [
         [
@@ -262,7 +262,7 @@ def test_cpp_strategy_cuda_empty_readout_before_clean_update_does_not_fallback(
     grid_sizes = torch.tensor([[1, 1, 4]], dtype=torch.long, device=device)
     freqs = _rope_freqs(4, device=device)
 
-    monkeypatch.setenv("HEADKV_CPP_STRATEGY", "1")
+    monkeypatch.setenv("PYRAMIDKV_CPP_STRATEGY", "1")
     cache = _build_cache_with_strategy(
         CyclicStrategy(period=2, bucket_cap=2, dynamic_rope=True),
         device=device,
@@ -271,7 +271,7 @@ def test_cpp_strategy_cuda_empty_readout_before_clean_update_does_not_fallback(
 
     def _collect_all_must_not_run(*_args, **_kwargs):
         raise AssertionError(
-            "HEADKV_CPP_STRATEGY empty readout called Python collect_all"
+            "PYRAMIDKV_CPP_STRATEGY empty readout called Python collect_all"
         )
 
     monkeypatch.setattr(HeadComposition, "collect_all", _collect_all_must_not_run)
@@ -322,7 +322,7 @@ def test_cpp_strategy_cache_readout_matches_python_cuda(
     grid_sizes = torch.tensor([[1, 1, 4]], dtype=torch.long, device=device)
     freqs = _rope_freqs(4, device=device)
 
-    monkeypatch.delenv("HEADKV_CPP_STRATEGY", raising=False)
+    monkeypatch.delenv("PYRAMIDKV_CPP_STRATEGY", raising=False)
     baseline = _build_cache_with_strategy(baseline_strategy, device=device)
     inputs = [
         _cache_tokens(t * 100, 4, num_heads=1, head_dim=4).to(device) for t in range(8)
@@ -341,7 +341,7 @@ def test_cpp_strategy_cache_readout_matches_python_cuda(
         freqs=freqs,
     )
 
-    monkeypatch.setenv("HEADKV_CPP_STRATEGY", "1")
+    monkeypatch.setenv("PYRAMIDKV_CPP_STRATEGY", "1")
     opt_in = _build_cache_with_strategy(cpp_strategy, device=device)
     opt_in.set_profile_enabled(True)
     for frame_idx, k in enumerate(inputs):
@@ -354,7 +354,7 @@ def test_cpp_strategy_cache_readout_matches_python_cuda(
         )
 
     def _collect_all_must_not_run(*_args, **_kwargs):
-        raise AssertionError("HEADKV_CPP_STRATEGY readout called Python collect_all")
+        raise AssertionError("PYRAMIDKV_CPP_STRATEGY readout called Python collect_all")
 
     monkeypatch.setattr(HeadComposition, "collect_all", _collect_all_must_not_run)
     actual = opt_in.get_decoupled_flat_kv_and_frames(
@@ -423,8 +423,8 @@ def test_cpp_strategy_cache_refresh_matches_python_cuda(monkeypatch):
         stats = cache.pop_profile_stats()
         return out, stats
 
-    monkeypatch.delenv("HEADKV_CPP_STRATEGY", raising=False)
-    monkeypatch.delenv("HEADKV_CUDA_REFRESH", raising=False)
+    monkeypatch.delenv("PYRAMIDKV_CPP_STRATEGY", raising=False)
+    monkeypatch.delenv("PYRAMIDKV_CUDA_REFRESH", raising=False)
     baseline = _build_cache_with_strategy(
         CyclicStrategy(period=2, bucket_cap=2, dynamic_rope=True),
         device=device,
@@ -432,8 +432,8 @@ def test_cpp_strategy_cache_refresh_matches_python_cuda(monkeypatch):
     baseline.set_profile_enabled(True)
     expected, baseline_stats = _run_two_block_readout(baseline)
 
-    monkeypatch.setenv("HEADKV_CPP_STRATEGY", "1")
-    monkeypatch.setenv("HEADKV_CUDA_REFRESH", "1")
+    monkeypatch.setenv("PYRAMIDKV_CPP_STRATEGY", "1")
+    monkeypatch.setenv("PYRAMIDKV_CUDA_REFRESH", "1")
     opt_in = _build_cache_with_strategy(
         CyclicStrategy(period=2, bucket_cap=2, dynamic_rope=True),
         device=device,

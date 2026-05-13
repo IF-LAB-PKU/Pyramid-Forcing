@@ -23,8 +23,8 @@ try:
 except ImportError:  # pragma: no cover
     pytest.skip("flash-attn not installed", allow_module_level=True)
 
-from headkv import _ops, _mega_state_ops as ops_mod, _mega_state_ref as ref
-from headkv import _mega_attention
+from pyramidkv import _ops, _mega_state_ops as ops_mod, _mega_state_ref as ref
+from pyramidkv import _mega_attention
 
 
 def _pack(states, device):
@@ -53,7 +53,7 @@ def test_two_blocks_stride_insertion_then_readout():
     interval = 1  # every frame is stride-eligible
     device = torch.device("cuda:0")
 
-    Cls = torch.classes.adahead.HeadKVCacheManager
+    Cls = torch.classes.adahead.PyramidKVCacheManager
     mgr = Cls(L, H, D, FSEQ, max_sink, max_middle, max_recent,
               "cuda:0", "bfloat16", 4)
     mgr.reset()

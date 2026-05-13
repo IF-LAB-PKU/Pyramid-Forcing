@@ -1,10 +1,10 @@
-"""Tests for headkv/cyclic.py — CyclicStrategy."""
+"""Tests for pyramidkv/cyclic.py — CyclicStrategy."""
 from __future__ import annotations
 
 import torch
 import pytest
 
-from headkv.cyclic import CyclicStrategy
+from pyramidkv.cyclic import CyclicStrategy
 from tests.helpers import make_anchor_data, make_multi_frame_input
 
 FS = 4  # frame_seqlen
@@ -119,16 +119,16 @@ class TestCyclicCollect:
         assert result == []
 
     def test_collect_equivalent_with_contiguous_store_opt_in_on_cpu(self, monkeypatch):
-        monkeypatch.setenv("HEADKV_CONTIG_ANCHOR_STORE", "1")
+        monkeypatch.setenv("PYRAMIDKV_CONTIG_ANCHOR_STORE", "1")
         baseline = CyclicStrategy(period=6, bucket_cap=5)
         opt_in = CyclicStrategy(period=6, bucket_cap=5)
         baseline.reset(1)
         opt_in.reset(1)
         frames = [make_anchor_data(t, FS, HD) for t in [0, 6, 12]]
-        monkeypatch.delenv("HEADKV_CONTIG_ANCHOR_STORE", raising=False)
+        monkeypatch.delenv("PYRAMIDKV_CONTIG_ANCHOR_STORE", raising=False)
         for t, (k, v, pos) in zip([0, 6, 12], frames):
             baseline.update(0, k, v, pos, FS, t)
-        monkeypatch.setenv("HEADKV_CONTIG_ANCHOR_STORE", "1")
+        monkeypatch.setenv("PYRAMIDKV_CONTIG_ANCHOR_STORE", "1")
         for t, (k, v, pos) in zip([0, 6, 12], frames):
             opt_in.update(0, k, v, pos, FS, t)
 
@@ -145,7 +145,7 @@ class TestCyclicCollect:
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA required")
     def test_contiguous_store_accepts_non_contiguous_cuda_sources(self, monkeypatch):
-        monkeypatch.setenv("HEADKV_CONTIG_ANCHOR_STORE", "1")
+        monkeypatch.setenv("PYRAMIDKV_CONTIG_ANCHOR_STORE", "1")
         cs = CyclicStrategy(period=6, bucket_cap=5)
         cs.reset(1)
 

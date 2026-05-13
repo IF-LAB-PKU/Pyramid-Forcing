@@ -6,7 +6,7 @@ kernel produces identical results to torch.cat(out=workspace).
 import pytest
 import torch
 
-from headkv.rope import map_dynamic_pos_time
+from pyramidkv.rope import map_dynamic_pos_time
 
 
 @pytest.fixture
@@ -27,7 +27,7 @@ class TestScatterCopy:
 
     def test_basic_bf16(self, device):
         """Scatter-copy bf16 tensors matches torch.cat."""
-        from headkv._scatter_ext import scatter_copy
+        from pyramidkv._scatter_ext import scatter_copy
 
         head_dim = 128
         lengths = [1560, 3120, 1560, 4680]
@@ -52,7 +52,7 @@ class TestScatterCopy:
 
     def test_int64_pos(self, device):
         """Scatter-copy int64 position tensors (3 columns)."""
-        from headkv._scatter_ext import scatter_copy
+        from pyramidkv._scatter_ext import scatter_copy
 
         col_dim = 3
         lengths = [1560, 1560, 3120]
@@ -75,7 +75,7 @@ class TestScatterCopy:
 
     def test_empty_segments(self, device):
         """Handle zero-length segments gracefully."""
-        from headkv._scatter_ext import scatter_copy
+        from pyramidkv._scatter_ext import scatter_copy
 
         head_dim = 128
         src_list = [torch.randn(1560, head_dim, device=device, dtype=torch.bfloat16)]
@@ -93,7 +93,7 @@ class TestScatterCopy:
 
     def test_many_segments(self, device):
         """36 segments (typical Phase B workload)."""
-        from headkv._scatter_ext import scatter_copy
+        from pyramidkv._scatter_ext import scatter_copy
 
         head_dim = 128
         torch.manual_seed(42)
@@ -118,7 +118,7 @@ class TestScatterCopy:
 
     def test_override_pos_time(self, device):
         """Test sync_t override on pos[:, 0]."""
-        from headkv._scatter_ext import apply_pos_override
+        from pyramidkv._scatter_ext import apply_pos_override
 
         total = 4680
         pos = torch.zeros(total, 3, dtype=torch.int64, device=device)
@@ -137,7 +137,7 @@ class TestScatterCopy:
 
     def test_anchor_store_write_frames(self, device):
         """Frame-copy API writes selected frames into contiguous store slots."""
-        from headkv._scatter_ext import anchor_store_write_frames
+        from pyramidkv._scatter_ext import anchor_store_write_frames
 
         frame_seqlen = 4
         head_dim = 8
@@ -169,7 +169,7 @@ class TestScatterCopy:
     @pytest.mark.parametrize("mapping_mode", ["none", "relative_clamp", "relative_softcap"])
     def test_refresh_readout_layout(self, device, frame_mode, mapping_mode):
         """CUDA refresh matches Python K/V/pos/frame-id materialization."""
-        from headkv._scatter_ext import refresh_readout_layout
+        from pyramidkv._scatter_ext import refresh_readout_layout
 
         head_dim = 8
         current_t = 10

@@ -22,10 +22,10 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     pytest.skip("flash-attn not installed", allow_module_level=True)
 
-from headkv._mega_cache import build_mega_caches
-from headkv.base import HeadComposition
-from headkv.recent import RecentStrategy
-from headkv.rope import apply_rope_to_flat_k
+from pyramidkv._mega_cache import build_mega_caches
+from pyramidkv.base import HeadComposition
+from pyramidkv.recent import RecentStrategy
+from pyramidkv.rope import apply_rope_to_flat_k
 
 
 def _build_freqs(head_dim: int, max_t: int = 64) -> torch.Tensor:

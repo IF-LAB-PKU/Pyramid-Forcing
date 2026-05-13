@@ -38,7 +38,7 @@ class TestScatterCopyReproBlock3:
         This is the core R1 scenario: between capturing data_ptr() and
         launching the scatter kernel, the underlying storage gets reallocated.
         """
-        from headkv._scatter_ext import scatter_copy, scatter_available
+        from pyramidkv._scatter_ext import scatter_copy, scatter_available
 
         if not scatter_available():
             pytest.skip("CUDA scatter extension not available")

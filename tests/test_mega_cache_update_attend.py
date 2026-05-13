@@ -20,9 +20,9 @@ try:
 except ImportError:  # pragma: no cover
     pytest.skip("flash-attn not installed", allow_module_level=True)
 
-from headkv import _ops, _mega_cache, _mega_state_ref as ref
-from headkv.base import HeadComposition
-from headkv.stride import StrideStrategy
+from pyramidkv import _ops, _mega_cache, _mega_state_ref as ref
+from pyramidkv.base import HeadComposition
+from pyramidkv.stride import StrideStrategy
 
 _ops._ensure_loaded()
 
@@ -78,7 +78,7 @@ def test_three_blocks_update_then_attend_matches_reference():
     assert int(vc[0, 0, 2].item()) == 0          # recent empty
     # Stride state should record tkey_count=3 with t=[0,1,2].
     import numpy as np
-    from headkv import _mega_state_ops as ops_mod
+    from pyramidkv import _mega_state_ops as ops_mod
     states_after_b1 = ops_mod.unpack_states(
         cache.states_bytes_for_layer.cpu().numpy()
         .view(ops_mod.PER_HEAD_STATE_DTYPE).reshape(H).copy()

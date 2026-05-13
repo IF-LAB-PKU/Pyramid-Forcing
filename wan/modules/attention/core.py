@@ -225,7 +225,7 @@ def flash_attention(
     return x.type(out_dtype)
 
 
-def headkv_attention(
+def pyramidkv_attention(
     q,
     k,
     v,
@@ -245,11 +245,11 @@ def headkv_attention(
     fa_version=None,
 ):
     """
-    HeadKV attention using FlashAttention varlen interface.
+    PyramidKV attention using FlashAttention varlen interface.
 
     Args:
         q, k, v: [B, L, H, D]
-        kv_cache: HeadKVCache
+        kv_cache: PyramidKVCache
     """
     half_dtypes = (torch.float16, torch.bfloat16)
     assert dtype in half_dtypes

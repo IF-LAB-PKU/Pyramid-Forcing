@@ -1,10 +1,10 @@
-"""Tests for headkv/merge.py — MergeStrategy."""
+"""Tests for pyramidkv/merge.py — MergeStrategy."""
 from __future__ import annotations
 
 import torch
 import pytest
 
-from headkv.merge import MergeStrategy
+from pyramidkv.merge import MergeStrategy
 from tests.helpers import make_multi_frame_input
 
 FS = 4

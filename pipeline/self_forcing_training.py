@@ -12,7 +12,7 @@ class SelfForcingTrainingPipeline:
     the generator runs a *noisy* forward pass to compute the loss target,
     then a *clean* pass on the denoised latent so the cached K/V matches
     what the student would see at inference time. The two-pass rollout is
-    what makes inference-time HeadKV caches consistent with the trained
+    what makes inference-time PyramidKV caches consistent with the trained
     teacher-student trajectory.
 
     Note:

@@ -19,12 +19,12 @@ torch = pytest.importorskip("torch")
 if not torch.cuda.is_available():  # pragma: no cover
     pytest.skip("CUDA required", allow_module_level=True)
 
-from headkv import _ops, _mega_cache, _mega_state_ops as ops_mod, _mega_state_ref as ref
-from headkv.base import HeadComposition
-from headkv.cyclic import CyclicStrategy
-from headkv.stride import StrideStrategy
-from headkv.lag import LagStrategy
-from headkv.merge import MergeStrategy
+from pyramidkv import _ops, _mega_cache, _mega_state_ops as ops_mod, _mega_state_ref as ref
+from pyramidkv.base import HeadComposition
+from pyramidkv.cyclic import CyclicStrategy
+from pyramidkv.stride import StrideStrategy
+from pyramidkv.lag import LagStrategy
+from pyramidkv.merge import MergeStrategy
 
 _ops._ensure_loaded()  # register torch.classes.adahead.* before build_mega_caches
 

@@ -22,8 +22,8 @@ def device():
 
 def _make_cache_and_inputs(device, num_blocks=3):
     """Build a minimal AdaptiveKVCache that exercises the hot path."""
-    from headkv.config import HeadKVConfig
-    from headkv.adaptive_cache import AdaptiveKVCache
+    from pyramidkv.config import PyramidKVConfig
+    from pyramidkv.adaptive_cache import AdaptiveKVCache
     from wan.modules.model import rope_params
     import tempfile, os
 
@@ -42,7 +42,7 @@ def _make_cache_and_inputs(device, num_blocks=3):
             f.write(f"0,{h},{label}\n")
         config_path = f.name
 
-    config = HeadKVConfig(config_path, num_layers=num_layers, num_heads=num_heads)
+    config = PyramidKVConfig(config_path, num_layers=num_layers, num_heads=num_heads)
     os.unlink(config_path)
 
     cache = AdaptiveKVCache(
@@ -124,8 +124,8 @@ class TestNoHostSyncs:
         Catches deep .item() calls in _capture_sink_if_needed,
         _update_cyclic_anchors, etc. that the minimal config misses.
         """
-        from headkv.config import HeadKVConfig
-        from headkv.adaptive_cache import AdaptiveKVCache
+        from pyramidkv.config import PyramidKVConfig
+        from pyramidkv.adaptive_cache import AdaptiveKVCache
         from wan.modules.model import rope_params
         import tempfile
 
@@ -143,7 +143,7 @@ class TestNoHostSyncs:
                 f.write(f"0,{h},{label}\n")
             config_path = f.name
 
-        config = HeadKVConfig(config_path, num_layers=num_layers, num_heads=num_heads)
+        config = PyramidKVConfig(config_path, num_layers=num_layers, num_heads=num_heads)
         config.frame_seq_length = frame_seqlen
         os.unlink(config_path)
 
@@ -214,9 +214,9 @@ class TestNoHostSyncs:
         Catches per-block syncs in composition.update_all() / merge.update() /
         do_clean_anchors path that the smaller realistic_config test misses.
         """
-        from headkv.config import HeadKVConfig
-        from headkv.adaptive_cache import AdaptiveKVCache
-        from headkv.factory import build_compositions
+        from pyramidkv.config import PyramidKVConfig
+        from pyramidkv.adaptive_cache import AdaptiveKVCache
+        from pyramidkv.factory import build_compositions
         from wan.modules.model import rope_params
         import tempfile
 
@@ -237,7 +237,7 @@ class TestNoHostSyncs:
                 f.write(row + "\n")
             config_path = f.name
 
-        config = HeadKVConfig(config_path, num_layers=num_layers, num_heads=num_heads)
+        config = PyramidKVConfig(config_path, num_layers=num_layers, num_heads=num_heads)
         config.frame_seq_length = frame_seqlen
         os.unlink(config_path)
 

@@ -4,21 +4,21 @@ import tempfile
 import pytest
 import torch
 
-from headkv.adaptive_cache import AdaptiveKVCache
-from headkv.base import HeadComposition
-from headkv.config import HeadKVConfig
-from headkv.cyclic import CyclicStrategy
-from headkv.lag import LagStrategy
-from headkv.stride import StrideStrategy
+from pyramidkv.adaptive_cache import AdaptiveKVCache
+from pyramidkv.base import HeadComposition
+from pyramidkv.config import PyramidKVConfig
+from pyramidkv.cyclic import CyclicStrategy
+from pyramidkv.lag import LagStrategy
+from pyramidkv.stride import StrideStrategy
 from wan.modules.model import rope_params
 
 
-def _build_config(num_heads: int, capacities: list[int]) -> HeadKVConfig:
+def _build_config(num_heads: int, capacities: list[int]) -> PyramidKVConfig:
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".csv", delete=False) as f:
         for head_idx, cap in enumerate(capacities):
             f.write(f"0,{head_idx},{cap}\n")
         path = f.name
-    config = HeadKVConfig(path, num_layers=1, num_heads=num_heads)
+    config = PyramidKVConfig(path, num_layers=1, num_heads=num_heads)
     os.unlink(path)
     return config
 
@@ -175,7 +175,7 @@ def test_readout_layout_profile_counts_cold_reuse_and_refresh():
 
 
 def test_contiguous_anchor_store_cpu_opt_in_falls_back_and_counts(monkeypatch):
-    monkeypatch.setenv("HEADKV_CONTIG_ANCHOR_STORE", "1")
+    monkeypatch.setenv("PYRAMIDKV_CONTIG_ANCHOR_STORE", "1")
     cache, grid_sizes = _build_composed_cache()
     cache.set_profile_enabled(True)
 
@@ -190,7 +190,7 @@ def test_contiguous_anchor_store_cpu_opt_in_falls_back_and_counts(monkeypatch):
 
 
 def test_cpp_strategy_cpu_opt_in_falls_back_and_counts(monkeypatch):
-    monkeypatch.setenv("HEADKV_CPP_STRATEGY", "1")
+    monkeypatch.setenv("PYRAMIDKV_CPP_STRATEGY", "1")
     cache, grid_sizes = _build_composed_cache()
     cache.set_profile_enabled(True)
 
@@ -211,8 +211,8 @@ def test_cpp_strategy_cuda_refresh_readout_counts_refresh_and_materialize(monkey
     grid_sizes = torch.tensor([[1, 1, 4]], dtype=torch.long, device=device)
     inputs = [_make_tokens(t * 100, 4, num_heads=1, head_dim=4).to(device) for t in range(10)]
 
-    monkeypatch.setenv("HEADKV_CPP_STRATEGY", "1")
-    monkeypatch.setenv("HEADKV_CUDA_REFRESH", "1")
+    monkeypatch.setenv("PYRAMIDKV_CPP_STRATEGY", "1")
+    monkeypatch.setenv("PYRAMIDKV_CUDA_REFRESH", "1")
     cache, _ = _build_cpp_refresh_cache(device=device)
     cache.set_profile_enabled(True)
 
@@ -258,7 +258,7 @@ def test_contiguous_anchor_store_cuda_readout_matches_default(monkeypatch, frame
     device = torch.device("cuda")
     freqs = _build_rope_freqs(head_dim=4).to(device)
 
-    monkeypatch.delenv("HEADKV_CONTIG_ANCHOR_STORE", raising=False)
+    monkeypatch.delenv("PYRAMIDKV_CONTIG_ANCHOR_STORE", raising=False)
     baseline, baseline_grid = _build_composed_cache(device=device, capture_frame_id_mode=frame_mode)
     inputs = [_make_tokens(t * 100, 4, num_heads=1, head_dim=4).to(device) for t in range(5)]
     for frame_idx, k in enumerate(inputs):
@@ -275,7 +275,7 @@ def test_contiguous_anchor_store_cuda_readout_matches_default(monkeypatch, frame
         freqs=freqs,
     )
 
-    monkeypatch.setenv("HEADKV_CONTIG_ANCHOR_STORE", "1")
+    monkeypatch.setenv("PYRAMIDKV_CONTIG_ANCHOR_STORE", "1")
     opt_in, opt_in_grid = _build_composed_cache(device=device, capture_frame_id_mode=frame_mode)
     opt_in.set_profile_enabled(True)
     for frame_idx, k in enumerate(inputs):

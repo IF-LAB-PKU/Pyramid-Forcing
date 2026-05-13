@@ -20,7 +20,7 @@ Lifecycle
    graph buffer is overwritten on the next replay).
 
 The runner is not active by default: callers gate on
-``HEADKV_USE_CUDA_GRAPH=1`` via the env var or a config flag.
+``PYRAMIDKV_USE_CUDA_GRAPH=1`` via the env var or a config flag.
 
 This file contains only the skeleton; the actual capture wiring follows once
 the C++ pack is folded into the forward path.
@@ -36,7 +36,7 @@ import torch
 
 
 def cuda_graph_requested() -> bool:
-    return os.environ.get("HEADKV_USE_CUDA_GRAPH", "0") == "1"
+    return os.environ.get("PYRAMIDKV_USE_CUDA_GRAPH", "0") == "1"
 
 
 @dataclass
@@ -61,7 +61,7 @@ class GraphedDiffusionRunner:
         self._forward = forward_fn
         self._warmup_steps = max(1, int(warmup_steps))
 
-        # Two pools: long-lived KV-cache state (managed by HeadKVCacheManager)
+        # Two pools: long-lived KV-cache state (managed by PyramidKVCacheManager)
         # and short-lived per-step activations. Captured graphs use the short
         # pool; the manager allocates outside this runner so its tensors
         # persist across replays.

@@ -14,13 +14,13 @@ def is_main_process() -> bool:
 def get_log_mode() -> str:
     """Return the inference log mode.
 
-    Env var HEADKV_LOG_MODE selects the mode:
+    Env var PYRAMIDKV_LOG_MODE selects the mode:
       - "tqdm"   — rich per-timestep progress bar (default when TTY; slow over SSH)
       - "print"  — one plain print per block with elapsed ms (SSH-friendly)
       - "silent" — no output
     Falls back to "tqdm" if TTY is detected, otherwise "print".
     """
-    mode = os.environ.get("HEADKV_LOG_MODE", "").strip().lower()
+    mode = os.environ.get("PYRAMIDKV_LOG_MODE", "").strip().lower()
     if mode in ("tqdm", "print", "silent"):
         return mode
     if not is_main_process():
@@ -58,7 +58,7 @@ def format_block_progress(
 
 
 class BlockTimer:
-    """Context manager for plain-print block timing (HEADKV_LOG_MODE=print).
+    """Context manager for plain-print block timing (PYRAMIDKV_LOG_MODE=print).
 
     Records wall-clock entry time, prints one line on exit with elapsed ms.
     """

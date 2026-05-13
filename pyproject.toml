@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10,<3.11"
 
 # Core inference dependencies. Keep this list lean — only what
-# inference.py / pipeline / headkv / wan / utils / model actually import.
+# inference.py / pipeline / pyramidkv / wan / utils / model actually import.
 # Optional extras (training, dev tooling, notebooks) live under
 # [project.optional-dependencies] below.
 dependencies = [
@@ -33,7 +33,7 @@ dependencies = [
     "regex>=2024.0",
     "requests>=2.32.5",
     "sentencepiece>=0.2.1",
-    # Triton's runtime build path and headkv's C++ JIT extension both
+    # Triton's runtime build path and pyramidkv's C++ JIT extension both
     # import `setuptools` at runtime. uv-managed venvs don't ship it by
     # default, so pin it here.
     "setuptools>=68.0",
@@ -108,7 +108,7 @@ allow-direct-references = true
 
 [tool.pytest.ini_options]
 addopts = "--strict-markers"
-# Add the repo root to sys.path so `from headkv ...`, `from pipeline ...`,
+# Add the repo root to sys.path so `from pyramidkv ...`, `from pipeline ...`,
 # etc. resolve without a `pip install -e .` step (CI installs only the
 # minimal CPU deps).
 pythonpath = ["."]

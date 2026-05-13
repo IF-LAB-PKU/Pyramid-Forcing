@@ -3,7 +3,7 @@
 Day 5d uses **identity grouping** (group_idx == token_idx). This means the
 finalized merge anchor is the simple per-token mean across the 4 frames of
 a block. Day 5e will port the spatial _build_patch_groups from
-headkv/merge.py for bit-exact match.
+pyramidkv/merge.py for bit-exact match.
 
 Test plan
 ---------
@@ -24,13 +24,13 @@ torch = pytest.importorskip("torch")
 if not torch.cuda.is_available():  # pragma: no cover
     pytest.skip("CUDA required", allow_module_level=True)
 
-from headkv import _mega_state_ops as ops_mod
-from headkv import _mega_state_ref as ref
-from headkv import _ops
+from pyramidkv import _mega_state_ops as ops_mod
+from pyramidkv import _mega_state_ref as ref
+from pyramidkv import _ops
 
 
 def _make_manager(H, D, FSEQ):
-    Cls = torch.classes.adahead.HeadKVCacheManager
+    Cls = torch.classes.adahead.PyramidKVCacheManager
     return Cls(
         1,    # num_layers
         H,

@@ -45,10 +45,10 @@ master_port="${MASTER_PORT:-29500}"
 
 # Progress-bar output. tqdm is the default since the per-block bar now
 # counts denoise + clean pass correctly (5/5) and the per-prompt status
-# line goes through tqdm.write(). Override with HEADKV_LOG_MODE=silent
+# line goes through tqdm.write(). Override with PYRAMIDKV_LOG_MODE=silent
 # when batching over slow SSH where the bar flushes block the host
-# thread, or HEADKV_LOG_MODE=print for plain log-style output.
-export HEADKV_LOG_MODE="${HEADKV_LOG_MODE:-tqdm}"
+# thread, or PYRAMIDKV_LOG_MODE=print for plain log-style output.
+export PYRAMIDKV_LOG_MODE="${PYRAMIDKV_LOG_MODE:-tqdm}"
 
 # CUDA refresh fast path: replaces the per-segment scatter_copy + Python
 # descriptor build with a single mega-kernel pulled in via the JIT extension.
@@ -57,20 +57,20 @@ export HEADKV_LOG_MODE="${HEADKV_LOG_MODE:-tqdm}"
 # Wall-clock DiT only -0.6s today because CPU time is overlapped with GPU,
 # but the CPU savings will materialise under M2.2 CUDA Graph capture where
 # graph replay eliminates CPU dispatch entirely. Default-on; override with 0.
-export HEADKV_CUDA_REFRESH="${HEADKV_CUDA_REFRESH:-1}"
+export PYRAMIDKV_CUDA_REFRESH="${PYRAMIDKV_CUDA_REFRESH:-1}"
 
 # MegaCache path: when set to 1, _initialize_kv_cache builds the C++/CUDA
-# HeadKVCacheManager-backed MegaCache instead of Python's AdaptiveKVCache.
+# PyramidKVCacheManager-backed MegaCache instead of Python's AdaptiveKVCache.
 # Default-on now that the raw-K refactor + Plan-B buffer shrink land
 # parity with the Python reference at ~30% faster wall-clock. Override
-# with HEADKV_USE_MEGA_CACHE=0 to fall back to the Python path (e.g. when
+# with PYRAMIDKV_USE_MEGA_CACHE=0 to fall back to the Python path (e.g. when
 # debugging a kernel regression). Requires the JIT extension to build
-# (see headkv/_scatter_ext.py).
-export HEADKV_USE_MEGA_CACHE="${HEADKV_USE_MEGA_CACHE:-1}"
+# (see pyramidkv/_scatter_ext.py).
+export PYRAMIDKV_USE_MEGA_CACHE="${PYRAMIDKV_USE_MEGA_CACHE:-1}"
 
 # JIT build verbosity for debugging: when set to 1, _try_load emits the full
 # nvcc compile log + traceback on failure instead of swallowing the error.
-export HEADKV_VERBOSE_BUILD="${HEADKV_VERBOSE_BUILD:-0}"
+export PYRAMIDKV_VERBOSE_BUILD="${PYRAMIDKV_VERBOSE_BUILD:-0}"
 
 infer_visible_gpu_count() {
     local visible="${CUDA_VISIBLE_DEVICES:-}"

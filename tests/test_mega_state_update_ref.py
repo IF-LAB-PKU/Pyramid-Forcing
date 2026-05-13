@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from headkv._mega_state_ref import (
+from pyramidkv._mega_state_ref import (
     DST_KIND_MERGE_ACCUM,
     DST_KIND_MIDDLE,
     DST_KIND_SKIP,
@@ -219,7 +219,7 @@ class TestStateInvariants:
 class TestMergeStrategy:
     """Day 3 — merge accumulator + finalize state machine.
 
-    Mirrors headkv/merge.py:65 update() behavior; the actual K/V
+    Mirrors pyramidkv/merge.py:65 update() behavior; the actual K/V
     accumulation kernel lands in Day 4 (mega_merge_accum.cu).
     """
 

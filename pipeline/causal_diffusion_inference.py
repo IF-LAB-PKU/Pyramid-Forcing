@@ -5,8 +5,8 @@ import torch
 from wan.utils.fm_solvers import FlowDPMSolverMultistepScheduler, get_sampling_sigmas, retrieve_timesteps
 from wan.utils.fm_solvers_unipc import FlowUniPCMultistepScheduler
 from utils.wan_wrapper import WanDiffusionWrapper, WanTextEncoder, WanVAEWrapper
-from headkv import AdaptiveKVCache, HeadKVCache, HeadKVConfig
-from pipeline.headkv_config import HeadKVPipelineConfig
+from pyramidkv import AdaptiveKVCache, PyramidKVCache, PyramidKVConfig
+from pipeline.pyramidkv_config import PyramidKVPipelineConfig
 
 
 class CausalDiffusionInferencePipeline(torch.nn.Module):
@@ -42,8 +42,8 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
         self.num_frame_per_block = getattr(args, "num_frame_per_block", 1)
         self.independent_first_frame = args.independent_first_frame
         self.local_attn_size = self.generator.model.local_attn_size
-        self.use_headkv = getattr(args, "use_headkv", False)
-        self.headkv_config = HeadKVPipelineConfig.from_args(args, frame_seq_length=self.frame_seq_length)
+        self.use_pyramidkv = getattr(args, "use_pyramidkv", False)
+        self.pyramidkv_config = PyramidKVPipelineConfig.from_args(args, frame_seq_length=self.frame_seq_length)
 
         print(f"KV inference with {self.num_frame_per_block} frames per block")
 
@@ -102,8 +102,8 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
         # Step 1: Initialize KV cache to all zeros
         if self.kv_cache_pos is None:
             context_len = 0
-            if self.use_headkv and self.headkv_config.headkv_is_i2v and initial_latent is not None:
-                context_len = self.headkv_config.headkv_context_len
+            if self.use_pyramidkv and self.pyramidkv_config.pyramidkv_is_i2v and initial_latent is not None:
+                context_len = self.pyramidkv_config.pyramidkv_context_len
             self._initialize_kv_cache(
                 batch_size=batch_size,
                 dtype=noise.dtype,
@@ -123,7 +123,7 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
                 self.crossattn_cache_pos[block_index]["prompt_v"] = None
                 self.crossattn_cache_neg[block_index]["prompt_v"] = None
             # reset kv cache
-            if self.use_headkv:
+            if self.use_pyramidkv:
                 for cache in self.kv_cache_pos:
                     cache.reset()
                 for cache in self.kv_cache_neg:
@@ -292,8 +292,8 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
         """
         Initialize a Per-GPU KV cache for the Wan model.
         """
-        if self.use_headkv:
-            hc = self.headkv_config
+        if self.use_pyramidkv:
+            hc = self.pyramidkv_config
             num_layers = self.generator.model.num_layers
             num_heads = self.generator.model.num_heads
             head_dim = self.generator.model.dim // num_heads
@@ -301,22 +301,22 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
                 base_capacity_tokens = self.local_attn_size * self.frame_seq_length
             else:
                 base_capacity_tokens = 32760
-            default_capacity = hc.headkv_default_capacity or base_capacity_tokens
-            config = HeadKVConfig(
-                hc.headkv_config_path,
+            default_capacity = hc.pyramidkv_default_capacity or base_capacity_tokens
+            config = PyramidKVConfig(
+                hc.pyramidkv_config_path,
                 num_layers=num_layers,
                 num_heads=num_heads,
                 default_capacity=default_capacity,
-                strategy_reduction_factor=hc.headkv_strategy_factor,
-                code_map=hc.headkv_code_map,
-                head_type_csv_path=hc.headkv_policy_csv_path,
-                drop_heads_csv_path=hc.headkv_drop_heads_csv_path,
-                soft_ablate_heads_csv_path=hc.headkv_soft_ablate_csv_path,
-                af_policy_enabled=hc.headkv_af_policy_enabled,
-                af_csv_path=hc.headkv_af_csv_path,
-                af_group_dir=hc.headkv_af_group_dir,
-                af_manifest_path=hc.headkv_af_manifest_path,
-                frame_seq_length=hc.headkv_frame_seq_length,
+                strategy_reduction_factor=hc.pyramidkv_strategy_factor,
+                code_map=hc.pyramidkv_code_map,
+                head_type_csv_path=hc.pyramidkv_policy_csv_path,
+                drop_heads_csv_path=hc.pyramidkv_drop_heads_csv_path,
+                soft_ablate_heads_csv_path=hc.pyramidkv_soft_ablate_csv_path,
+                af_policy_enabled=hc.pyramidkv_af_policy_enabled,
+                af_csv_path=hc.pyramidkv_af_csv_path,
+                af_group_dir=hc.pyramidkv_af_group_dir,
+                af_manifest_path=hc.pyramidkv_af_manifest_path,
+                frame_seq_length=hc.pyramidkv_frame_seq_length,
             )
             self.kv_cache_pos = [
                 (
@@ -326,10 +326,10 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
                         num_heads=num_heads,
                         head_dim=head_dim,
                         layer_idx=layer_idx,
-                        is_i2v=hc.headkv_is_i2v,
+                        is_i2v=hc.pyramidkv_is_i2v,
                         context_len=context_len,
-                        sink_len=hc.headkv_sink_tokens,
-                        tail_len=hc.headkv_dynamic_capacity,
+                        sink_len=hc.pyramidkv_sink_tokens,
+                        tail_len=hc.pyramidkv_dynamic_capacity,
                         ivc_ratio=hc.ivc_ratio,
                         semantic_ratio=hc.semantic_ratio,
                         trajectory_ratio=hc.trajectory_ratio,
@@ -344,7 +344,7 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
                         sink_grid_decoupling=hc.sink_grid_decoupling,
                         decoupled_sink_tokens=hc.decoupled_sink_tokens,
                         decoupled_sink_time_lag=hc.decoupled_sink_time_lag,
-                        sink_time_mapping_mode=hc.headkv_dynamic_rope_mode,
+                        sink_time_mapping_mode=hc.pyramidkv_dynamic_rope_mode,
                         sink_time_clamp_min=hc.sink_time_clamp_min,
                         sink_time_clamp_max=hc.sink_time_clamp_max,
                         history_time_mapping_mode=hc.history_time_mapping_mode,
@@ -353,44 +353,44 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
                         use_osc_frame_mode=hc.cyclic_enabled,
                         phase_period=hc.cyclic_period,
                         phase_bucket_capacity_frames=hc.cyclic_bucket_cap,
-                        local_tail_frames=hc.headkv_recent_frames,
+                        local_tail_frames=hc.pyramidkv_recent_frames,
                         phase_sink_for_osc_only=hc.cyclic_osc_only,
                         phase_sink_dynamic_rope=hc.cyclic_dynamic_rope,
                         use_osc_lag_mode=hc.lag_enabled,
-                        osc_lag_offsets_frames=hc.headkv_lag_offsets,
-                        osc_lag_history_frames=hc.headkv_lag_history,
+                        osc_lag_offsets_frames=hc.pyramidkv_lag_offsets,
+                        osc_lag_history_frames=hc.pyramidkv_lag_history,
                         osc_lag_dynamic_rope=hc.lag_dynamic_rope,
-                        disable_first_sink_for_osc_heads=hc.headkv_disable_osc_sink,
-                        use_stable_head_policies=hc.headkv_stable_policy_enabled,
-                        stable_sink_frames=hc.headkv_stable_sink_frames,
-                        osc_sink_frames=hc.headkv_osc_sink_frames,
-                        stable_recent_frames=hc.headkv_stable_recent_frames,
-                        use_af_head_policies=hc.headkv_af_policy_enabled,
-                        af_recent_frames_map=hc.headkv_af_recent_frames_map,
-                        af_phase_bucket_map=hc.headkv_af_phase_bucket_map,
-                        af_lag_offsets_map=hc.headkv_af_lag_offsets_map,
-                        af_sink_frames_map=hc.headkv_af_sink_frames_map,
-                        af_stride_enabled_map=hc.headkv_af_stride_enabled_map,
-                        label_recent_frames_map=hc.headkv_label_recent_frames_map,
-                        label_phase_bucket_map=hc.headkv_label_phase_bucket_map,
-                        label_lag_offsets_map=hc.headkv_label_lag_offsets_map,
-                        label_sink_frames_map=hc.headkv_label_sink_frames_map,
-                        label_stride_enabled_map=hc.headkv_label_stride_enabled_map,
-                        capture_frame_id_mode=hc.headkv_capture_frame_id_mode,
-                        readout_cache_enabled=hc.headkv_readout_cache_enabled,
-                        prompt_value_cache_enabled=hc.headkv_prompt_v_cache_enabled,
+                        disable_first_sink_for_osc_heads=hc.pyramidkv_disable_osc_sink,
+                        use_stable_head_policies=hc.pyramidkv_stable_policy_enabled,
+                        stable_sink_frames=hc.pyramidkv_stable_sink_frames,
+                        osc_sink_frames=hc.pyramidkv_osc_sink_frames,
+                        stable_recent_frames=hc.pyramidkv_stable_recent_frames,
+                        use_af_head_policies=hc.pyramidkv_af_policy_enabled,
+                        af_recent_frames_map=hc.pyramidkv_af_recent_frames_map,
+                        af_phase_bucket_map=hc.pyramidkv_af_phase_bucket_map,
+                        af_lag_offsets_map=hc.pyramidkv_af_lag_offsets_map,
+                        af_sink_frames_map=hc.pyramidkv_af_sink_frames_map,
+                        af_stride_enabled_map=hc.pyramidkv_af_stride_enabled_map,
+                        label_recent_frames_map=hc.pyramidkv_label_recent_frames_map,
+                        label_phase_bucket_map=hc.pyramidkv_label_phase_bucket_map,
+                        label_lag_offsets_map=hc.pyramidkv_label_lag_offsets_map,
+                        label_sink_frames_map=hc.pyramidkv_label_sink_frames_map,
+                        label_stride_enabled_map=hc.pyramidkv_label_stride_enabled_map,
+                        capture_frame_id_mode=hc.pyramidkv_capture_frame_id_mode,
+                        readout_cache_enabled=hc.pyramidkv_readout_cache_enabled,
+                        prompt_value_cache_enabled=hc.pyramidkv_prompt_v_cache_enabled,
                     )
-                    if hc.use_adaptive_headkv else
-                    HeadKVCache(
+                    if hc.use_adaptive_pyramidkv else
+                    PyramidKVCache(
                         config=config,
                         batch_size=batch_size,
                         num_heads=num_heads,
                         head_dim=head_dim,
                         layer_idx=layer_idx,
-                        is_i2v=hc.headkv_is_i2v,
+                        is_i2v=hc.pyramidkv_is_i2v,
                         context_len=context_len,
-                        frame_seq_length=hc.headkv_frame_seq_length,
-                        prompt_value_cache_enabled=hc.headkv_prompt_v_cache_enabled,
+                        frame_seq_length=hc.pyramidkv_frame_seq_length,
+                        prompt_value_cache_enabled=hc.pyramidkv_prompt_v_cache_enabled,
                     )
                 )
                 for layer_idx in range(num_layers)
@@ -403,10 +403,10 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
                         num_heads=num_heads,
                         head_dim=head_dim,
                         layer_idx=layer_idx,
-                        is_i2v=hc.headkv_is_i2v,
+                        is_i2v=hc.pyramidkv_is_i2v,
                         context_len=context_len,
-                        sink_len=hc.headkv_sink_tokens,
-                        tail_len=hc.headkv_dynamic_capacity,
+                        sink_len=hc.pyramidkv_sink_tokens,
+                        tail_len=hc.pyramidkv_dynamic_capacity,
                         ivc_ratio=hc.ivc_ratio,
                         semantic_ratio=hc.semantic_ratio,
                         trajectory_ratio=hc.trajectory_ratio,
@@ -421,7 +421,7 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
                         sink_grid_decoupling=hc.sink_grid_decoupling,
                         decoupled_sink_tokens=hc.decoupled_sink_tokens,
                         decoupled_sink_time_lag=hc.decoupled_sink_time_lag,
-                        sink_time_mapping_mode=hc.headkv_dynamic_rope_mode,
+                        sink_time_mapping_mode=hc.pyramidkv_dynamic_rope_mode,
                         sink_time_clamp_min=hc.sink_time_clamp_min,
                         sink_time_clamp_max=hc.sink_time_clamp_max,
                         history_time_mapping_mode=hc.history_time_mapping_mode,
@@ -430,55 +430,55 @@ class CausalDiffusionInferencePipeline(torch.nn.Module):
                         use_osc_frame_mode=hc.cyclic_enabled,
                         phase_period=hc.cyclic_period,
                         phase_bucket_capacity_frames=hc.cyclic_bucket_cap,
-                        local_tail_frames=hc.headkv_recent_frames,
+                        local_tail_frames=hc.pyramidkv_recent_frames,
                         phase_sink_for_osc_only=hc.cyclic_osc_only,
                         phase_sink_dynamic_rope=hc.cyclic_dynamic_rope,
                         use_osc_lag_mode=hc.lag_enabled,
-                        osc_lag_offsets_frames=hc.headkv_lag_offsets,
-                        osc_lag_history_frames=hc.headkv_lag_history,
+                        osc_lag_offsets_frames=hc.pyramidkv_lag_offsets,
+                        osc_lag_history_frames=hc.pyramidkv_lag_history,
                         osc_lag_dynamic_rope=hc.lag_dynamic_rope,
-                        disable_first_sink_for_osc_heads=hc.headkv_disable_osc_sink,
-                        use_stable_head_policies=hc.headkv_stable_policy_enabled,
-                        stable_sink_frames=hc.headkv_stable_sink_frames,
-                        osc_sink_frames=hc.headkv_osc_sink_frames,
-                        stable_recent_frames=hc.headkv_stable_recent_frames,
-                        use_af_head_policies=hc.headkv_af_policy_enabled,
-                        af_recent_frames_map=hc.headkv_af_recent_frames_map,
-                        af_phase_bucket_map=hc.headkv_af_phase_bucket_map,
-                        af_lag_offsets_map=hc.headkv_af_lag_offsets_map,
-                        af_sink_frames_map=hc.headkv_af_sink_frames_map,
-                        af_stride_enabled_map=hc.headkv_af_stride_enabled_map,
-                        label_recent_frames_map=hc.headkv_label_recent_frames_map,
-                        label_phase_bucket_map=hc.headkv_label_phase_bucket_map,
-                        label_lag_offsets_map=hc.headkv_label_lag_offsets_map,
-                        label_sink_frames_map=hc.headkv_label_sink_frames_map,
-                        label_stride_enabled_map=hc.headkv_label_stride_enabled_map,
-                        capture_frame_id_mode=hc.headkv_capture_frame_id_mode,
-                        readout_cache_enabled=hc.headkv_readout_cache_enabled,
-                        prompt_value_cache_enabled=hc.headkv_prompt_v_cache_enabled,
+                        disable_first_sink_for_osc_heads=hc.pyramidkv_disable_osc_sink,
+                        use_stable_head_policies=hc.pyramidkv_stable_policy_enabled,
+                        stable_sink_frames=hc.pyramidkv_stable_sink_frames,
+                        osc_sink_frames=hc.pyramidkv_osc_sink_frames,
+                        stable_recent_frames=hc.pyramidkv_stable_recent_frames,
+                        use_af_head_policies=hc.pyramidkv_af_policy_enabled,
+                        af_recent_frames_map=hc.pyramidkv_af_recent_frames_map,
+                        af_phase_bucket_map=hc.pyramidkv_af_phase_bucket_map,
+                        af_lag_offsets_map=hc.pyramidkv_af_lag_offsets_map,
+                        af_sink_frames_map=hc.pyramidkv_af_sink_frames_map,
+                        af_stride_enabled_map=hc.pyramidkv_af_stride_enabled_map,
+                        label_recent_frames_map=hc.pyramidkv_label_recent_frames_map,
+                        label_phase_bucket_map=hc.pyramidkv_label_phase_bucket_map,
+                        label_lag_offsets_map=hc.pyramidkv_label_lag_offsets_map,
+                        label_sink_frames_map=hc.pyramidkv_label_sink_frames_map,
+                        label_stride_enabled_map=hc.pyramidkv_label_stride_enabled_map,
+                        capture_frame_id_mode=hc.pyramidkv_capture_frame_id_mode,
+                        readout_cache_enabled=hc.pyramidkv_readout_cache_enabled,
+                        prompt_value_cache_enabled=hc.pyramidkv_prompt_v_cache_enabled,
                     )
-                    if hc.use_adaptive_headkv else
-                    HeadKVCache(
+                    if hc.use_adaptive_pyramidkv else
+                    PyramidKVCache(
                         config=config,
                         batch_size=batch_size,
                         num_heads=num_heads,
                         head_dim=head_dim,
                         layer_idx=layer_idx,
-                        is_i2v=hc.headkv_is_i2v,
+                        is_i2v=hc.pyramidkv_is_i2v,
                         context_len=context_len,
-                        frame_seq_length=hc.headkv_frame_seq_length,
-                        prompt_value_cache_enabled=hc.headkv_prompt_v_cache_enabled,
+                        frame_seq_length=hc.pyramidkv_frame_seq_length,
+                        prompt_value_cache_enabled=hc.pyramidkv_prompt_v_cache_enabled,
                     )
                 )
                 for layer_idx in range(num_layers)
             ]
             # Soft ablation controls are runtime knobs on cache objects.
             for cache in self.kv_cache_pos:
-                cache.soft_ablate_region = str(hc.headkv_soft_ablate_region)
-                cache.soft_ablate_scale = float(hc.headkv_soft_ablate_scale)
+                cache.soft_ablate_region = str(hc.pyramidkv_soft_ablate_region)
+                cache.soft_ablate_scale = float(hc.pyramidkv_soft_ablate_scale)
             for cache in self.kv_cache_neg:
-                cache.soft_ablate_region = str(hc.headkv_soft_ablate_region)
-                cache.soft_ablate_scale = float(hc.headkv_soft_ablate_scale)
+                cache.soft_ablate_region = str(hc.pyramidkv_soft_ablate_region)
+                cache.soft_ablate_scale = float(hc.pyramidkv_soft_ablate_scale)
         else:
             kv_cache_pos = []
             kv_cache_neg = []

@@ -4,16 +4,16 @@ import tempfile
 import pytest
 import torch
 
-from headkv.config import HeadKVConfig
-from headkv import HeadComposition
-from headkv.merge import MergeStrategy
+from pyramidkv.config import PyramidKVConfig
+from pyramidkv import HeadComposition
+from pyramidkv.merge import MergeStrategy
 from wan.modules.model import rope_params
-from headkv.adaptive_cache import (
+from pyramidkv.adaptive_cache import (
     AdaptiveKVCache,
     SemanticValueSelector,
     ThreeDIVCSelector,
 )
-from headkv.rope import apply_rope_to_flat_k
+from pyramidkv.rope import apply_rope_to_flat_k
 
 
 def _build_config(num_layers, num_heads, capacities):
@@ -23,12 +23,12 @@ def _build_config(num_layers, num_heads, capacities):
             f.write(f"{layer_idx},{head_idx},{cap}\n")
         path = f.name
 
-    config = HeadKVConfig(path, num_layers=num_layers, num_heads=num_heads)
+    config = PyramidKVConfig(path, num_layers=num_layers, num_heads=num_heads)
     os.unlink(path)
     return config
 
 
-def _set_layer_labels(config: HeadKVConfig, labels):
+def _set_layer_labels(config: PyramidKVConfig, labels):
     for head_idx, label in enumerate(labels):
         config.label_map[0, head_idx] = int(label)
 

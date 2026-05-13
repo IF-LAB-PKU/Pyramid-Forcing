@@ -25,17 +25,17 @@ def device():
 class TestFusedRefreshAvailable:
     def test_fused_refresh_module_exists(self):
         """_scatter_ext should expose fused_refresh_available() + fused_refresh_tail()."""
-        from headkv import _scatter_ext
+        from pyramidkv import _scatter_ext
         assert hasattr(_scatter_ext, "fused_refresh_available"), \
             "fused_refresh_available() missing — M8-impl not applied"
         assert hasattr(_scatter_ext, "fused_refresh_tail"), \
             "fused_refresh_tail() missing — M8-impl not applied"
 
     def test_env_toggle(self):
-        """HEADKV_FUSED_REFRESH=1 should opt-in the fused path."""
-        from headkv import _scatter_ext
+        """PYRAMIDKV_FUSED_REFRESH=1 should opt-in the fused path."""
+        from pyramidkv import _scatter_ext
         # With toggle off, available() returns False (opt-in only)
-        os.environ.pop("HEADKV_FUSED_REFRESH", None)
+        os.environ.pop("PYRAMIDKV_FUSED_REFRESH", None)
         assert not _scatter_ext.fused_refresh_available(), \
             "fused_refresh should be opt-in (default off)"
 
@@ -44,8 +44,8 @@ class TestFusedRefreshEquivalence:
     """Bit-exact equivalence of fused kernel vs Python refresh loop."""
 
     def _build_cache(self, device):
-        from headkv.config import HeadKVConfig
-        from headkv.adaptive_cache import AdaptiveKVCache
+        from pyramidkv.config import PyramidKVConfig
+        from pyramidkv.adaptive_cache import AdaptiveKVCache
         from wan.modules.model import rope_params
         import tempfile
 
@@ -61,7 +61,7 @@ class TestFusedRefreshEquivalence:
                 f.write(f"0,{h},{label}\n")
             config_path = f.name
 
-        config = HeadKVConfig(config_path, num_layers=1, num_heads=num_heads)
+        config = PyramidKVConfig(config_path, num_layers=1, num_heads=num_heads)
         config.frame_seq_length = frame_seqlen
         os.unlink(config_path)
 
@@ -110,7 +110,7 @@ class TestFusedRefreshEquivalence:
         v_noise = torch.randn_like(k_noise)
 
         # Python path
-        os.environ.pop("HEADKV_FUSED_REFRESH", None)
+        os.environ.pop("PYRAMIDKV_FUSED_REFRESH", None)
         cache_python.update(k_noise.clone(), v_noise.clone(),
                             current_start=last_start, grid_sizes=grid_sizes,
                             freqs=freqs, cache_update_mode="noisy")
@@ -118,7 +118,7 @@ class TestFusedRefreshEquivalence:
             current_start=last_start, grid_sizes=grid_sizes, freqs=freqs)
 
         # Fused path
-        os.environ["HEADKV_FUSED_REFRESH"] = "1"
+        os.environ["PYRAMIDKV_FUSED_REFRESH"] = "1"
         try:
             cache_fused.update(k_noise.clone(), v_noise.clone(),
                                current_start=last_start, grid_sizes=grid_sizes,
@@ -126,7 +126,7 @@ class TestFusedRefreshEquivalence:
             out_fu = cache_fused.get_decoupled_flat_kv_and_frames(
                 current_start=last_start, grid_sizes=grid_sizes, freqs=freqs)
         finally:
-            os.environ.pop("HEADKV_FUSED_REFRESH", None)
+            os.environ.pop("PYRAMIDKV_FUSED_REFRESH", None)
 
         k_py, v_py, cu_py, maxlen_py, fids_py = out_py
         k_fu, v_fu, cu_fu, maxlen_fu, fids_fu = out_fu

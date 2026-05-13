@@ -1,14 +1,14 @@
 """M1.6 part 2 integration test: C++ plan+pack matches Python get_flat_kv.
 
-Proves the C++ readout path (torch.ops.adahead.headkv_plan +
-headkv_pack) produces bit-equivalent output to the existing Python
-HeadKVCache.get_flat_kv() given the same logical cache state. This
+Proves the C++ readout path (torch.ops.adahead.pyramidkv_plan +
+pyramidkv_pack) produces bit-equivalent output to the existing Python
+PyramidKVCache.get_flat_kv() given the same logical cache state. This
 bridges the unit tests and a full pipeline integration: it exercises
 the kernel on production-shape data (12 heads, frame_seqlen=1560)
 without yet touching adaptive_cache.py.
 
 The test populates dynamic_k[i] / static_k[i] with synthetic frames,
-mirrors that state into a HeadKVCacheManager's pools, then compares
+mirrors that state into a PyramidKVCacheManager's pools, then compares
 the V outputs (pre-RoPE on K is already applied in the cache, but V
 goes through unchanged in both paths so it's the safe comparison).
 """
@@ -16,14 +16,14 @@ from __future__ import annotations
 
 import pytest
 import torch
-from headkv import _ops as _ops_mod
+from pyramidkv import _ops as _ops_mod
 
 
 def _try_load_or_skip():
     try:
-        from headkv import _ops
+        from pyramidkv import _ops
     except Exception as exc:
-        pytest.skip(f"headkv._ops import failed: {exc}")
+        pytest.skip(f"pyramidkv._ops import failed: {exc}")
         return None
     if not _ops._ensure_loaded():
         pytest.skip("Extension failed to load")
@@ -47,7 +47,7 @@ class TestPackVsPythonGetFlatKV:
         device = "cuda:0"
 
         # Build C++ manager.
-        Cls = torch.classes.adahead.HeadKVCacheManager
+        Cls = torch.classes.adahead.PyramidKVCacheManager
         mgr = Cls(L, H, D, F, 1, 1, max_recent, device, "bfloat16", L)
 
         # Synthetic per-head dynamic state: each head has `n_frames_per_head`
@@ -68,13 +68,13 @@ class TestPackVsPythonGetFlatKV:
         vc[0, :, 2] = n_frames    # recent
 
         # Python reference: torch.cat over heads (head-major order, like
-        # HeadKVCache.get_flat_kv does)
+        # PyramidKVCache.get_flat_kv does)
         ref_v = torch.cat(dynamic_v_list, dim=0)
 
         # C++: plan + pack
         ns = torch.ops.adahead
-        cu, sk, sg, sl, dst = ns.headkv_plan(mgr, 0, 0)
-        _ops_mod.headkv_pack(mgr, sk, sg, sl, dst)
+        cu, sk, sg, sl, dst = ns.pyramidkv_plan(mgr, 0, 0)
+        _ops_mod.pyramidkv_pack(mgr, sk, sg, sl, dst)
         torch.cuda.synchronize()
         total = int(cu[-1].item())
         out_v = mgr.v_flat_out()[:total, 0, :]
@@ -99,7 +99,7 @@ class TestPackVsPythonGetFlatKV:
         L = 1
         device = "cuda:0"
 
-        Cls = torch.classes.adahead.HeadKVCacheManager
+        Cls = torch.classes.adahead.PyramidKVCacheManager
         mgr = Cls(L, H, D, F, max_sink, 1, max_recent, device, "bfloat16", L)
 
         torch.manual_seed(42)
@@ -109,7 +109,7 @@ class TestPackVsPythonGetFlatKV:
             dn_v = torch.randn(max_recent * F, D, dtype=torch.bfloat16, device=device)
             mgr.sink_v_pool()[0, h, :max_sink].copy_(sn_v.reshape(max_sink, F, D))
             mgr.recent_v_pool()[0, h, :max_recent].copy_(dn_v.reshape(max_recent, F, D))
-            # Python ref: static then dynamic (mirrors HeadKVCache.get_flat_kv)
+            # Python ref: static then dynamic (mirrors PyramidKVCache.get_flat_kv)
             ref_chunks.append(sn_v)
             ref_chunks.append(dn_v)
 
@@ -121,8 +121,8 @@ class TestPackVsPythonGetFlatKV:
         ref_v = torch.cat(ref_chunks, dim=0)
 
         ns = torch.ops.adahead
-        cu, sk, sg, sl, dst = ns.headkv_plan(mgr, 0, 0)
-        _ops_mod.headkv_pack(mgr, sk, sg, sl, dst)
+        cu, sk, sg, sl, dst = ns.pyramidkv_plan(mgr, 0, 0)
+        _ops_mod.pyramidkv_pack(mgr, sk, sg, sl, dst)
         torch.cuda.synchronize()
         total = int(cu[-1].item())
         out_v = mgr.v_flat_out()[:total, 0, :]
@@ -144,7 +144,7 @@ class TestPackVsPythonGetFlatKV:
         L = 1
         device = "cuda:0"
 
-        Cls = torch.classes.adahead.HeadKVCacheManager
+        Cls = torch.classes.adahead.PyramidKVCacheManager
         mgr = Cls(L, H, D, F, 2, 1, 2, device, "bfloat16", L)
 
         # Per-head varying valid counts.
@@ -172,8 +172,8 @@ class TestPackVsPythonGetFlatKV:
         ref_v = torch.cat(ref_chunks, dim=0)
 
         ns = torch.ops.adahead
-        cu, sk, sg, sl, dst = ns.headkv_plan(mgr, 0, 0)
-        _ops_mod.headkv_pack(mgr, sk, sg, sl, dst)
+        cu, sk, sg, sl, dst = ns.pyramidkv_plan(mgr, 0, 0)
+        _ops_mod.pyramidkv_pack(mgr, sk, sg, sl, dst)
         torch.cuda.synchronize()
         total = int(cu[-1].item())
         out_v = mgr.v_flat_out()[:total, 0, :]

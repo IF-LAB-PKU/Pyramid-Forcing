@@ -23,8 +23,8 @@ def device():
 
 def _make_cache_many_blocks(device, num_blocks=10):
     """Build a cache with cyclic+stride strategies and feed it many blocks."""
-    from headkv.config import HeadKVConfig
-    from headkv.adaptive_cache import AdaptiveKVCache
+    from pyramidkv.config import PyramidKVConfig
+    from pyramidkv.adaptive_cache import AdaptiveKVCache
     from wan.modules.model import rope_params
     import tempfile, os
 
@@ -42,7 +42,7 @@ def _make_cache_many_blocks(device, num_blocks=10):
             f.write(f"0,{h},{label}\n")
         config_path = f.name
 
-    config = HeadKVConfig(config_path, num_layers=num_layers, num_heads=num_heads)
+    config = PyramidKVConfig(config_path, num_layers=num_layers, num_heads=num_heads)
     os.unlink(config_path)
 
     cache = AdaptiveKVCache(

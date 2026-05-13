@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 from omegaconf import OmegaConf
 
-from headkv.adaptive_cache import AdaptiveKVCache
+from pyramidkv.adaptive_cache import AdaptiveKVCache
 
 
 def _make_cache() -> AdaptiveKVCache:

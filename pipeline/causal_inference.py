@@ -4,11 +4,11 @@ import torch
 from tqdm import tqdm
 
 from utils.wan_wrapper import WanDiffusionWrapper, WanTextEncoder, WanVAEWrapper
-from headkv import AdaptiveKVCache, HeadKVCache, HeadKVConfig
-from headkv import build_compositions
-from headkv._mega_cache import build_mega_caches
-from headkv import _mega_state_ref as _mega_ref
-from pipeline.headkv_config import HeadKVPipelineConfig
+from pyramidkv import AdaptiveKVCache, PyramidKVCache, PyramidKVConfig
+from pyramidkv import build_compositions
+from pyramidkv._mega_cache import build_mega_caches
+from pyramidkv import _mega_state_ref as _mega_ref
+from pipeline.pyramidkv_config import PyramidKVPipelineConfig
 from pipeline.logging_utils import BlockTimer, format_block_progress, get_log_mode, is_main_process, should_use_timestep_progress
 
 from demo_utils.memory import gpu, get_cuda_free_memory_gb, DynamicSwapInstaller, move_model_to_device_with_memory_preservation
@@ -25,7 +25,7 @@ class CausalInferencePipeline(torch.nn.Module):
         ``[B, 512, 4096]`` prompt embedding.
       * ``self.vae`` — 3D causal VAE with streaming decode.
       * ``self.kv_cache1[layer_idx]`` — per-layer ``AdaptiveKVCache`` (or
-        :class:`MegaCache` when ``HEADKV_USE_MEGA_CACHE=1``) holding the
+        :class:`MegaCache` when ``PYRAMIDKV_USE_MEGA_CACHE=1``) holding the
         per-head heterogeneous KV state.
 
     Driving an inference call (``inference()``) performs block-by-block
@@ -71,8 +71,8 @@ class CausalInferencePipeline(torch.nn.Module):
         self.num_frame_per_block = getattr(args, "num_frame_per_block", 1)
         self.independent_first_frame = args.independent_first_frame
         self.local_attn_size = self.generator.model.local_attn_size
-        self.use_headkv = getattr(args, "use_headkv", False)
-        self.headkv_config = HeadKVPipelineConfig.from_args(args, frame_seq_length=self.frame_seq_length)
+        self.use_pyramidkv = getattr(args, "use_pyramidkv", False)
+        self.pyramidkv_config = PyramidKVPipelineConfig.from_args(args, frame_seq_length=self.frame_seq_length)
         self.use_teacache = getattr(args, "use_teacache", False)
         if self.use_teacache:
             teacache_coefficients = getattr(args, "teacache_coefficients", None)
@@ -223,7 +223,7 @@ class CausalInferencePipeline(torch.nn.Module):
             diffusion_start = torch.cuda.Event(enable_timing=True)
             diffusion_end = torch.cuda.Event(enable_timing=True)
             block_times = []
-            headkv_block_stats = []
+            pyramidkv_block_stats = []
             teacache_block_stats = []
             clean_pass_times = []
             block_start = torch.cuda.Event(enable_timing=True)
@@ -233,8 +233,8 @@ class CausalInferencePipeline(torch.nn.Module):
         # Step 1: Initialize KV cache to all zeros
         if self.kv_cache1 is None:
             context_len = 0
-            if self.use_headkv and self.headkv_config.headkv_is_i2v and initial_latent is not None:
-                context_len = self.headkv_config.headkv_context_len
+            if self.use_pyramidkv and self.pyramidkv_config.pyramidkv_is_i2v and initial_latent is not None:
+                context_len = self.pyramidkv_config.pyramidkv_context_len
             self._initialize_kv_cache(
                 batch_size=batch_size,
                 dtype=noise.dtype,
@@ -253,7 +253,7 @@ class CausalInferencePipeline(torch.nn.Module):
                 self.crossattn_cache[block_index]["is_init"] = False
                 self.crossattn_cache[block_index]["prompt_v"] = None
             # reset kv cache
-            # 根据实际类型区分 HeadKV 模式和旧的 dict 模式，避免混用导致错误
+            # 根据实际类型区分 PyramidKV 模式和旧的 dict 模式，避免混用导致错误
             if self.kv_cache1 and hasattr(self.kv_cache1[0], "ctx") and hasattr(self.kv_cache1[0], "states_bytes_for_layer"):
                 # MegaCache: re-build to wipe pool + per-head states.
                 self.kv_cache1 = None
@@ -264,7 +264,7 @@ class CausalInferencePipeline(torch.nn.Module):
                     context_len=0,
                     max_frames=num_output_frames,
                 )
-            elif self.kv_cache1 and isinstance(self.kv_cache1[0], HeadKVCache):
+            elif self.kv_cache1 and isinstance(self.kv_cache1[0], PyramidKVCache):
                 for cache in self.kv_cache1:
                     cache.reset()
             else:
@@ -278,7 +278,7 @@ class CausalInferencePipeline(torch.nn.Module):
             self.generator.pop_teacache_stats()
         teacache_summary_enabled = (
             self.use_teacache
-            and os.environ.get("HEADKV_TEACACHE_SUMMARY", "0").strip().lower()
+            and os.environ.get("PYRAMIDKV_TEACACHE_SUMMARY", "0").strip().lower()
             in ("1", "true", "yes", "on")
         )
 
@@ -325,13 +325,13 @@ class CausalInferencePipeline(torch.nn.Module):
         # Compile only FFN layers. Cross-attention reuses crossattn_cache tensors
         # across model invocations, which is unsafe with Dynamo/CUDAGraphs.
         if self._compile_ffn and not self._ffn_compiled:
-            # G3a: opt-in CUDA Graph mode via HEADKV_CUDA_GRAPH=1.
+            # G3a: opt-in CUDA Graph mode via PYRAMIDKV_CUDA_GRAPH=1.
             # reduce-overhead enables Inductor's CUDAGraph wrapper; expected
             # ~5-10% util gain on dispatch-bound bs=1 FFN at the cost of
             # longer warmup and stricter shape stability.
             compile_mode = (
                 "reduce-overhead"
-                if os.environ.get("HEADKV_CUDA_GRAPH") == "1"
+                if os.environ.get("PYRAMIDKV_CUDA_GRAPH") == "1"
                 else "max-autotune-no-cudagraphs"
             )
             for block in self.generator.model.blocks:
@@ -521,7 +521,7 @@ class CausalInferencePipeline(torch.nn.Module):
                 block_time = block_start.elapsed_time(block_end)
                 block_times.append(block_time)
                 clean_pass_times.append(clean_pass_start.elapsed_time(clean_pass_end))
-                headkv_block_stats.append(self._pop_adaptive_kv_profile_stats())
+                pyramidkv_block_stats.append(self._pop_adaptive_kv_profile_stats())
                 teacache_block_stats.append(self.generator.pop_teacache_stats())
 
             # Step 3.5: update the start and end frame indices
@@ -561,21 +561,21 @@ class CausalInferencePipeline(torch.nn.Module):
             print("Profiling results:")
             print(f"  - Initialization/caching time: {init_time:.2f} ms ({100 * init_time / total_time:.2f}%)")
             print(f"  - Diffusion generation time: {diffusion_time:.2f} ms ({100 * diffusion_time / total_time:.2f}%)")
-            headkv_totals = {
-                key: sum(stats[key] for stats in headkv_block_stats)
+            pyramidkv_totals = {
+                key: sum(stats[key] for stats in pyramidkv_block_stats)
                 for key in ("update_ms", "collect_ms", "pack_ms", "rope_ms")
             }
-            if headkv_block_stats:
+            if pyramidkv_block_stats:
                 print(
-                    "  - HeadKV breakdown:"
-                    f" update={headkv_totals['update_ms']:.2f} ms,"
-                    f" collect={headkv_totals['collect_ms']:.2f} ms,"
-                    f" pack={headkv_totals['pack_ms']:.2f} ms,"
-                    f" rope={headkv_totals['rope_ms']:.2f} ms"
+                    "  - PyramidKV breakdown:"
+                    f" update={pyramidkv_totals['update_ms']:.2f} ms,"
+                    f" collect={pyramidkv_totals['collect_ms']:.2f} ms,"
+                    f" pack={pyramidkv_totals['pack_ms']:.2f} ms,"
+                    f" rope={pyramidkv_totals['rope_ms']:.2f} ms"
                 )
-                if os.environ.get("HEADKV_LAYOUT_DEBUG", "0").strip().lower() in ("1", "true", "yes", "on"):
+                if os.environ.get("PYRAMIDKV_LAYOUT_DEBUG", "0").strip().lower() in ("1", "true", "yes", "on"):
                     layout_totals = {
-                        key: sum(float(stats.get(key, 0.0)) for stats in headkv_block_stats)
+                        key: sum(float(stats.get(key, 0.0)) for stats in pyramidkv_block_stats)
                         for key in (
                             "cold_pack_count",
                             "refresh_pack_count",
@@ -606,10 +606,10 @@ class CausalInferencePipeline(torch.nn.Module):
                             "rope_only_refresh_count",
                         )
                     }
-                    readout_total_len = max(float(stats.get("readout_total_len", 0.0)) for stats in headkv_block_stats)
-                    readout_max_seqlen = max(float(stats.get("readout_max_seqlen", 0.0)) for stats in headkv_block_stats)
+                    readout_total_len = max(float(stats.get("readout_total_len", 0.0)) for stats in pyramidkv_block_stats)
+                    readout_max_seqlen = max(float(stats.get("readout_max_seqlen", 0.0)) for stats in pyramidkv_block_stats)
                     print(
-                        "  - HeadKV layout:"
+                        "  - PyramidKV layout:"
                         f" cold_pack_count={layout_totals['cold_pack_count']:.0f},"
                         f" refresh_pack_count={layout_totals['refresh_pack_count']:.0f},"
                         f" layout_reuse_count={layout_totals['layout_reuse_count']:.0f},"
@@ -648,7 +648,7 @@ class CausalInferencePipeline(torch.nn.Module):
                     f" full_calls={full_calls}, skipped_calls={skipped_calls}"
                 )
             for i, block_time in enumerate(block_times, start=1):
-                stats = headkv_block_stats[i - 1] if i - 1 < len(headkv_block_stats) else None
+                stats = pyramidkv_block_stats[i - 1] if i - 1 < len(pyramidkv_block_stats) else None
                 tea_stats = teacache_block_stats[i - 1] if i - 1 < len(teacache_block_stats) else None
                 clean_ms = clean_pass_times[i - 1] if i - 1 < len(clean_pass_times) else 0.0
                 if stats is None:
@@ -664,7 +664,7 @@ class CausalInferencePipeline(torch.nn.Module):
                     f"    - Block {i} generation time: {block_time:.2f} ms "
                     f"({100 * block_time / diffusion_time:.2f}% of diffusion) | "
                     f"clean={clean_ms:.2f} ms | "
-                    f"headkv(update={stats['update_ms']:.2f}, collect={stats['collect_ms']:.2f}, "
+                    f"pyramidkv(update={stats['update_ms']:.2f}, collect={stats['collect_ms']:.2f}, "
                     f"pack={stats['pack_ms']:.2f}, rope={stats['rope_ms']:.2f})"
                     f"{tea_text}"
                 )
@@ -691,8 +691,8 @@ class CausalInferencePipeline(torch.nn.Module):
         """
         Initialize a Per-GPU KV cache for the Wan model.
         """
-        if self.use_headkv:
-            hc = self.headkv_config
+        if self.use_pyramidkv:
+            hc = self.pyramidkv_config
             num_layers = self.generator.model.num_layers
             num_heads = self.generator.model.num_heads
             head_dim = self.generator.model.dim // num_heads
@@ -703,38 +703,38 @@ class CausalInferencePipeline(torch.nn.Module):
                 if max_frames is not None:
                      base_capacity_tokens = max(base_capacity_tokens, max_frames * self.frame_seq_length)
 
-            default_capacity = hc.headkv_default_capacity or base_capacity_tokens
-            config = HeadKVConfig(
-                hc.headkv_config_path,
+            default_capacity = hc.pyramidkv_default_capacity or base_capacity_tokens
+            config = PyramidKVConfig(
+                hc.pyramidkv_config_path,
                 num_layers=num_layers,
                 num_heads=num_heads,
                 default_capacity=default_capacity,
-                strategy_reduction_factor=hc.headkv_strategy_factor,
-                code_map=hc.headkv_code_map,
-                head_type_csv_path=hc.headkv_policy_csv_path,
-                drop_heads_csv_path=hc.headkv_drop_heads_csv_path,
-                soft_ablate_heads_csv_path=hc.headkv_soft_ablate_csv_path,
-                af_policy_enabled=hc.headkv_af_policy_enabled,
-                af_csv_path=hc.headkv_af_csv_path,
-                af_group_dir=hc.headkv_af_group_dir,
-                af_manifest_path=hc.headkv_af_manifest_path,
-                frame_seq_length=hc.headkv_frame_seq_length,
+                strategy_reduction_factor=hc.pyramidkv_strategy_factor,
+                code_map=hc.pyramidkv_code_map,
+                head_type_csv_path=hc.pyramidkv_policy_csv_path,
+                drop_heads_csv_path=hc.pyramidkv_drop_heads_csv_path,
+                soft_ablate_heads_csv_path=hc.pyramidkv_soft_ablate_csv_path,
+                af_policy_enabled=hc.pyramidkv_af_policy_enabled,
+                af_csv_path=hc.pyramidkv_af_csv_path,
+                af_group_dir=hc.pyramidkv_af_group_dir,
+                af_manifest_path=hc.pyramidkv_af_manifest_path,
+                frame_seq_length=hc.pyramidkv_frame_seq_length,
             )
             # Build compositions with strategy params from pipeline config
-            if hc.use_adaptive_headkv and hc.headkv_policy_csv_path:
+            if hc.use_adaptive_pyramidkv and hc.pyramidkv_policy_csv_path:
                 compositions = build_compositions(
                     num_layers=num_layers,
                     num_heads=num_heads,
                     capacities=config.capacity_map,
-                    csv_path=hc.headkv_policy_csv_path,
+                    csv_path=hc.pyramidkv_policy_csv_path,
                     cyclic_enabled=hc.cyclic_enabled,
                     cyclic_period=hc.cyclic_period,
                     cyclic_bucket_cap=hc.cyclic_bucket_cap,
                     cyclic_dynamic_rope=hc.cyclic_dynamic_rope,
                     cyclic_osc_only=hc.cyclic_osc_only,
                     lag_enabled=hc.lag_enabled,
-                    lag_offsets=hc.headkv_lag_offsets,
-                    lag_history=hc.headkv_lag_history,
+                    lag_offsets=hc.pyramidkv_lag_offsets,
+                    lag_history=hc.pyramidkv_lag_history,
                     lag_dynamic_rope=hc.lag_dynamic_rope,
                     stride_enabled=hc.stride_enabled,
                     stride_interval=hc.stride_interval,
@@ -744,35 +744,35 @@ class CausalInferencePipeline(torch.nn.Module):
                     merge_patch_size=hc.merge_patch_size,
                     merge_capacity=hc.merge_capacity,
                     merge_dynamic_rope=hc.merge_dynamic_rope,
-                    osc_sink_frames=hc.headkv_osc_sink_frames,
-                    stable_sink_frames=hc.headkv_stable_sink_frames,
-                    recent_frames=hc.headkv_recent_frames,
-                    stable_recent_frames=hc.headkv_stable_recent_frames,
-                    label_sink_frames_map=hc.headkv_label_sink_frames_map,
-                    label_recent_frames_map=hc.headkv_label_recent_frames_map,
-                    label_stride_enabled_map=hc.headkv_label_stride_enabled_map,
-                    label_stride_interval_map=hc.headkv_label_stride_interval_map,
-                    label_phase_bucket_map=hc.headkv_label_phase_bucket_map,
-                    label_lag_offsets_map=hc.headkv_label_lag_offsets_map,
-                    label_merge_enabled_map=hc.headkv_label_merge_enabled_map,
-                    label_merge_patch_size_map=hc.headkv_label_merge_patch_size_map,
-                    label_merge_capacity_map=hc.headkv_label_merge_capacity_map,
+                    osc_sink_frames=hc.pyramidkv_osc_sink_frames,
+                    stable_sink_frames=hc.pyramidkv_stable_sink_frames,
+                    recent_frames=hc.pyramidkv_recent_frames,
+                    stable_recent_frames=hc.pyramidkv_stable_recent_frames,
+                    label_sink_frames_map=hc.pyramidkv_label_sink_frames_map,
+                    label_recent_frames_map=hc.pyramidkv_label_recent_frames_map,
+                    label_stride_enabled_map=hc.pyramidkv_label_stride_enabled_map,
+                    label_stride_interval_map=hc.pyramidkv_label_stride_interval_map,
+                    label_phase_bucket_map=hc.pyramidkv_label_phase_bucket_map,
+                    label_lag_offsets_map=hc.pyramidkv_label_lag_offsets_map,
+                    label_merge_enabled_map=hc.pyramidkv_label_merge_enabled_map,
+                    label_merge_patch_size_map=hc.pyramidkv_label_merge_patch_size_map,
+                    label_merge_capacity_map=hc.pyramidkv_label_merge_capacity_map,
                 )
                 config.compositions = compositions
                 config.policies = compositions
 
             # Env-gated MegaCache path (Python sink/recent + C++ middle).
-            # Set HEADKV_USE_MEGA_CACHE=1 to take the C++ kernel path.
+            # Set PYRAMIDKV_USE_MEGA_CACHE=1 to take the C++ kernel path.
             if (
-                os.environ.get("HEADKV_USE_MEGA_CACHE") == "1"
-                and hc.use_adaptive_headkv
-                and hc.headkv_policy_csv_path
+                os.environ.get("PYRAMIDKV_USE_MEGA_CACHE") == "1"
+                and hc.use_adaptive_pyramidkv
+                and hc.pyramidkv_policy_csv_path
             ):
-                osc_sink = int(hc.headkv_osc_sink_frames or 1)
-                stable_sink = int(hc.headkv_stable_sink_frames or 3)
-                stable_recent = int(hc.headkv_stable_recent_frames or hc.headkv_recent_frames)
+                osc_sink = int(hc.pyramidkv_osc_sink_frames or 1)
+                stable_sink = int(hc.pyramidkv_stable_sink_frames or 3)
+                stable_recent = int(hc.pyramidkv_stable_recent_frames or hc.pyramidkv_recent_frames)
                 max_sink_frames = max(osc_sink, stable_sink)
-                max_recent_frames = max(int(hc.headkv_recent_frames), stable_recent)
+                max_recent_frames = max(int(hc.pyramidkv_recent_frames), stable_recent)
                 # Middle pool sized for stride/lag/cyclic worst-case occupancy.
                 max_middle_frames = int(_mega_ref.MAX_T_KEYED)
                 # Plan B — flat pack workspaces are sized for one attend
@@ -793,7 +793,7 @@ class CausalInferencePipeline(torch.nn.Module):
                     compositions=compositions,
                     device=str(device),
                     kv_dtype=("bfloat16" if dtype == torch.bfloat16 else "float16"),
-                    sink_time_mapping_mode=hc.headkv_dynamic_rope_mode,
+                    sink_time_mapping_mode=hc.pyramidkv_dynamic_rope_mode,
                     sink_time_clamp_min=int(hc.sink_time_clamp_min),
                     sink_time_clamp_max=int(hc.sink_time_clamp_max),
                     decoupled_sink_time_lag=int(hc.decoupled_sink_time_lag),
@@ -812,10 +812,10 @@ class CausalInferencePipeline(torch.nn.Module):
                         num_heads=num_heads,
                         head_dim=head_dim,
                         layer_idx=layer_idx,
-                        is_i2v=hc.headkv_is_i2v,
+                        is_i2v=hc.pyramidkv_is_i2v,
                         context_len=context_len,
-                        sink_len=hc.headkv_sink_tokens,
-                        tail_len=hc.headkv_dynamic_capacity,
+                        sink_len=hc.pyramidkv_sink_tokens,
+                        tail_len=hc.pyramidkv_dynamic_capacity,
                         ivc_ratio=hc.ivc_ratio,
                         semantic_ratio=hc.semantic_ratio,
                         trajectory_ratio=hc.trajectory_ratio,
@@ -830,7 +830,7 @@ class CausalInferencePipeline(torch.nn.Module):
                         sink_grid_decoupling=hc.sink_grid_decoupling,
                         decoupled_sink_tokens=hc.decoupled_sink_tokens,
                         decoupled_sink_time_lag=hc.decoupled_sink_time_lag,
-                        sink_time_mapping_mode=hc.headkv_dynamic_rope_mode,
+                        sink_time_mapping_mode=hc.pyramidkv_dynamic_rope_mode,
                         sink_time_clamp_min=hc.sink_time_clamp_min,
                         sink_time_clamp_max=hc.sink_time_clamp_max,
                         history_time_mapping_mode=hc.history_time_mapping_mode,
@@ -839,52 +839,52 @@ class CausalInferencePipeline(torch.nn.Module):
                         use_osc_frame_mode=hc.cyclic_enabled,
                         phase_period=hc.cyclic_period,
                         phase_bucket_capacity_frames=hc.cyclic_bucket_cap,
-                        local_tail_frames=hc.headkv_recent_frames,
+                        local_tail_frames=hc.pyramidkv_recent_frames,
                         phase_sink_for_osc_only=hc.cyclic_osc_only,
                         phase_sink_dynamic_rope=hc.cyclic_dynamic_rope,
                         use_osc_lag_mode=hc.lag_enabled,
-                        osc_lag_offsets_frames=hc.headkv_lag_offsets,
-                        osc_lag_history_frames=hc.headkv_lag_history,
+                        osc_lag_offsets_frames=hc.pyramidkv_lag_offsets,
+                        osc_lag_history_frames=hc.pyramidkv_lag_history,
                         osc_lag_dynamic_rope=hc.lag_dynamic_rope,
-                        disable_first_sink_for_osc_heads=hc.headkv_disable_osc_sink,
-                        use_stable_head_policies=hc.headkv_stable_policy_enabled,
-                        stable_sink_frames=hc.headkv_stable_sink_frames,
-                        osc_sink_frames=hc.headkv_osc_sink_frames,
-                        stable_recent_frames=hc.headkv_stable_recent_frames,
-                        use_af_head_policies=hc.headkv_af_policy_enabled,
-                        af_recent_frames_map=hc.headkv_af_recent_frames_map,
-                        af_phase_bucket_map=hc.headkv_af_phase_bucket_map,
-                        af_lag_offsets_map=hc.headkv_af_lag_offsets_map,
-                        af_sink_frames_map=hc.headkv_af_sink_frames_map,
-                        af_stride_enabled_map=hc.headkv_af_stride_enabled_map,
-                        label_recent_frames_map=hc.headkv_label_recent_frames_map,
-                        label_phase_bucket_map=hc.headkv_label_phase_bucket_map,
-                        label_lag_offsets_map=hc.headkv_label_lag_offsets_map,
-                        label_sink_frames_map=hc.headkv_label_sink_frames_map,
-                        label_stride_enabled_map=hc.headkv_label_stride_enabled_map,
-                        capture_frame_id_mode=hc.headkv_capture_frame_id_mode,
-                        readout_cache_enabled=hc.headkv_readout_cache_enabled,
-                        prompt_value_cache_enabled=hc.headkv_prompt_v_cache_enabled,
+                        disable_first_sink_for_osc_heads=hc.pyramidkv_disable_osc_sink,
+                        use_stable_head_policies=hc.pyramidkv_stable_policy_enabled,
+                        stable_sink_frames=hc.pyramidkv_stable_sink_frames,
+                        osc_sink_frames=hc.pyramidkv_osc_sink_frames,
+                        stable_recent_frames=hc.pyramidkv_stable_recent_frames,
+                        use_af_head_policies=hc.pyramidkv_af_policy_enabled,
+                        af_recent_frames_map=hc.pyramidkv_af_recent_frames_map,
+                        af_phase_bucket_map=hc.pyramidkv_af_phase_bucket_map,
+                        af_lag_offsets_map=hc.pyramidkv_af_lag_offsets_map,
+                        af_sink_frames_map=hc.pyramidkv_af_sink_frames_map,
+                        af_stride_enabled_map=hc.pyramidkv_af_stride_enabled_map,
+                        label_recent_frames_map=hc.pyramidkv_label_recent_frames_map,
+                        label_phase_bucket_map=hc.pyramidkv_label_phase_bucket_map,
+                        label_lag_offsets_map=hc.pyramidkv_label_lag_offsets_map,
+                        label_sink_frames_map=hc.pyramidkv_label_sink_frames_map,
+                        label_stride_enabled_map=hc.pyramidkv_label_stride_enabled_map,
+                        capture_frame_id_mode=hc.pyramidkv_capture_frame_id_mode,
+                        readout_cache_enabled=hc.pyramidkv_readout_cache_enabled,
+                        prompt_value_cache_enabled=hc.pyramidkv_prompt_v_cache_enabled,
                     )
-                    if hc.use_adaptive_headkv else
-                    HeadKVCache(
+                    if hc.use_adaptive_pyramidkv else
+                    PyramidKVCache(
                         config=config,
                         batch_size=batch_size,
                         num_heads=num_heads,
                         head_dim=head_dim,
                         layer_idx=layer_idx,
-                        is_i2v=hc.headkv_is_i2v,
+                        is_i2v=hc.pyramidkv_is_i2v,
                         context_len=context_len,
-                        frame_seq_length=hc.headkv_frame_seq_length,
-                        prompt_value_cache_enabled=hc.headkv_prompt_v_cache_enabled,
+                        frame_seq_length=hc.pyramidkv_frame_seq_length,
+                        prompt_value_cache_enabled=hc.pyramidkv_prompt_v_cache_enabled,
                     )
                 )
                 for layer_idx in range(num_layers)
             ]
             # Soft ablation controls are runtime knobs on cache objects.
             for cache in self.kv_cache1:
-                cache.soft_ablate_region = str(hc.headkv_soft_ablate_region)
-                cache.soft_ablate_scale = float(hc.headkv_soft_ablate_scale)
+                cache.soft_ablate_region = str(hc.pyramidkv_soft_ablate_region)
+                cache.soft_ablate_scale = float(hc.pyramidkv_soft_ablate_scale)
         else:
             kv_cache1 = []
             if self.local_attn_size != -1:

@@ -189,8 +189,8 @@ if local_rank == 0:
     _jit_t0 = time.time()
     print("Loading CUDA extension (first run compiles ~60s; cached run ~3s)...", flush=True)
 try:
-    from headkv import _ops as _headkv_ops
-    _headkv_ops._ensure_loaded()
+    from pyramidkv import _ops as _pyramidkv_ops
+    _pyramidkv_ops._ensure_loaded()
 except Exception as _e:
     if local_rank == 0:
         print(f"[warn] CUDA extension preload failed: {_e!r}", flush=True)

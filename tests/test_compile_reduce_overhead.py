@@ -4,7 +4,7 @@ This test verifies that FFN compilation with CUDA Graph mode produces
 bit-consistent results vs eager mode. It uses a minimal model forward
 (not full pipeline) to keep runtime reasonable.
 
-Expected: PASS when HEADKV_CUDA_GRAPH=1 produces same output as eager.
+Expected: PASS when PYRAMIDKV_CUDA_GRAPH=1 produces same output as eager.
 """
 import os
 import pytest
@@ -61,21 +61,21 @@ class TestCompileReduceOverhead:
         )
 
     def test_env_var_selects_compile_mode(self):
-        """HEADKV_CUDA_GRAPH=1 should select reduce-overhead mode."""
-        os.environ["HEADKV_CUDA_GRAPH"] = "1"
+        """PYRAMIDKV_CUDA_GRAPH=1 should select reduce-overhead mode."""
+        os.environ["PYRAMIDKV_CUDA_GRAPH"] = "1"
         try:
             mode = (
                 "reduce-overhead"
-                if os.environ.get("HEADKV_CUDA_GRAPH") == "1"
+                if os.environ.get("PYRAMIDKV_CUDA_GRAPH") == "1"
                 else "max-autotune-no-cudagraphs"
             )
             assert mode == "reduce-overhead"
         finally:
-            del os.environ["HEADKV_CUDA_GRAPH"]
+            del os.environ["PYRAMIDKV_CUDA_GRAPH"]
 
         mode = (
             "reduce-overhead"
-            if os.environ.get("HEADKV_CUDA_GRAPH") == "1"
+            if os.environ.get("PYRAMIDKV_CUDA_GRAPH") == "1"
             else "max-autotune-no-cudagraphs"
         )
         assert mode == "max-autotune-no-cudagraphs"

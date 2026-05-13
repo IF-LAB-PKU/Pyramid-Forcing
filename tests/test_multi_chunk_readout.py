@@ -21,8 +21,8 @@ import tempfile
 import pytest
 import torch
 
-from headkv.config import HeadKVConfig
-from headkv.adaptive_cache import AdaptiveKVCache
+from pyramidkv.config import PyramidKVConfig
+from pyramidkv.adaptive_cache import AdaptiveKVCache
 from wan.modules.model import rope_params
 
 
@@ -37,12 +37,12 @@ def _build_rope_freqs(head_dim: int, max_seq_len: int = 256) -> torch.Tensor:
     )
 
 
-def _build_config(num_heads: int, capacity: int) -> HeadKVConfig:
+def _build_config(num_heads: int, capacity: int) -> PyramidKVConfig:
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".csv", delete=False) as f:
         for h in range(num_heads):
             f.write(f"0,{h},{capacity}\n")
         path = f.name
-    config = HeadKVConfig(path, num_layers=1, num_heads=num_heads)
+    config = PyramidKVConfig(path, num_layers=1, num_heads=num_heads)
     os.unlink(path)
     return config
 

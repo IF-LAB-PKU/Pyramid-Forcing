@@ -1,11 +1,11 @@
-"""Tests for headkv/recent.py — RecentStrategy."""
+"""Tests for pyramidkv/recent.py — RecentStrategy."""
 from __future__ import annotations
 
 import torch
 import pytest
 
-from headkv.recent import RecentStrategy
-from headkv.base import MiddleStrategy
+from pyramidkv.recent import RecentStrategy
+from pyramidkv.base import MiddleStrategy
 from tests.helpers import make_anchor_data
 
 FS = 4

@@ -1,4 +1,4 @@
-"""M1.6 part 2: validate `headkv._cpp_shadow` helper API.
+"""M1.6 part 2: validate `pyramidkv._cpp_shadow` helper API.
 
 Drives `_ShadowState` with synthetic AdaptiveKVCache-shaped state (per-head
 2D `[n_tokens, head_dim]` tensors mirroring `static_k[h]` / `dynamic_k[h]`)
@@ -16,9 +16,9 @@ import torch
 
 def _try_load_or_skip():
     try:
-        from headkv import _ops
+        from pyramidkv import _ops
     except Exception as exc:
-        pytest.skip(f"headkv._ops import failed: {exc}")
+        pytest.skip(f"pyramidkv._ops import failed: {exc}")
         return None
     if not _ops._ensure_loaded():
         pytest.skip("Extension failed to load")
@@ -28,10 +28,10 @@ def _try_load_or_skip():
 @pytest.mark.gpu
 class TestCppShadowHelper:
     def test_noop_when_env_unset(self):
-        """maybe_attach_shadow returns None when HEADKV_USE_CPP_PACK is unset."""
-        from headkv._cpp_shadow import maybe_attach_shadow, cpp_pack_enabled
+        """maybe_attach_shadow returns None when PYRAMIDKV_USE_CPP_PACK is unset."""
+        from pyramidkv._cpp_shadow import maybe_attach_shadow, cpp_pack_enabled
 
-        os.environ.pop("HEADKV_USE_CPP_PACK", None)
+        os.environ.pop("PYRAMIDKV_USE_CPP_PACK", None)
         assert not cpp_pack_enabled()
         s = maybe_attach_shadow(
             layer_idx=0, num_heads=4, head_dim=32, frame_seqlen=64,
@@ -44,9 +44,9 @@ class TestCppShadowHelper:
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
         _try_load_or_skip()
-        from headkv._cpp_shadow import maybe_attach_shadow
+        from pyramidkv._cpp_shadow import maybe_attach_shadow
 
-        os.environ["HEADKV_USE_CPP_PACK"] = "1"
+        os.environ["PYRAMIDKV_USE_CPP_PACK"] = "1"
         try:
             s = maybe_attach_shadow(
                 layer_idx=0, num_heads=4, head_dim=32, frame_seqlen=64,
@@ -56,20 +56,20 @@ class TestCppShadowHelper:
             assert s.match_count == 0
             assert s.mismatch_count == 0
         finally:
-            os.environ.pop("HEADKV_USE_CPP_PACK", None)
+            os.environ.pop("PYRAMIDKV_USE_CPP_PACK", None)
 
     def test_mirror_and_match_recent_only(self):
         """End-to-end: mirror Python recent state, run cpp pack, match."""
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
         _try_load_or_skip()
-        from headkv._cpp_shadow import maybe_attach_shadow
+        from pyramidkv._cpp_shadow import maybe_attach_shadow
 
         H, D, F = 4, 32, 64
         n_recent_frames = 2
         device = "cuda:0"
 
-        os.environ["HEADKV_USE_CPP_PACK"] = "1"
+        os.environ["PYRAMIDKV_USE_CPP_PACK"] = "1"
         try:
             s = maybe_attach_shadow(
                 layer_idx=0, num_heads=H, head_dim=D, frame_seqlen=F,
@@ -101,20 +101,20 @@ class TestCppShadowHelper:
             assert s.match_count == 1
             assert s.mismatch_count == 0
         finally:
-            os.environ.pop("HEADKV_USE_CPP_PACK", None)
+            os.environ.pop("PYRAMIDKV_USE_CPP_PACK", None)
 
     def test_mirror_middle_from_segments(self):
         """sink + middle + recent end-to-end via mirror_middle_from_segments."""
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
         _try_load_or_skip()
-        from headkv._cpp_shadow import maybe_attach_shadow
+        from pyramidkv._cpp_shadow import maybe_attach_shadow
 
         H, D, F = 4, 16, 32
         max_sink, max_middle, max_recent = 2, 3, 2
         device = "cuda:0"
 
-        os.environ["HEADKV_USE_CPP_PACK"] = "1"
+        os.environ["PYRAMIDKV_USE_CPP_PACK"] = "1"
         try:
             s = maybe_attach_shadow(
                 layer_idx=0, num_heads=H, head_dim=D, frame_seqlen=F,
@@ -159,7 +159,7 @@ class TestCppShadowHelper:
             assert s.match_count == 1
             assert s.mismatch_count == 0
         finally:
-            os.environ.pop("HEADKV_USE_CPP_PACK", None)
+            os.environ.pop("PYRAMIDKV_USE_CPP_PACK", None)
 
     def test_mirror_middle_from_spec_and_vflat(self):
         """Unified middle mirror covers spec.segments (py-supplied) AND
@@ -167,13 +167,13 @@ class TestCppShadowHelper:
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
         _try_load_or_skip()
-        from headkv._cpp_shadow import maybe_attach_shadow
+        from pyramidkv._cpp_shadow import maybe_attach_shadow
 
         H, D, F = 2, 16, 32
         max_sink, max_middle, max_recent = 1, 4, 2
         device = "cuda:0"
 
-        os.environ["HEADKV_USE_CPP_PACK"] = "1"
+        os.environ["PYRAMIDKV_USE_CPP_PACK"] = "1"
         try:
             s = maybe_attach_shadow(
                 layer_idx=0, num_heads=H, head_dim=D, frame_seqlen=F,
@@ -241,19 +241,19 @@ class TestCppShadowHelper:
             assert s.match_count == 1
             assert s.mismatch_count == 0
         finally:
-            os.environ.pop("HEADKV_USE_CPP_PACK", None)
+            os.environ.pop("PYRAMIDKV_USE_CPP_PACK", None)
 
     def test_mismatch_raises(self):
         """assert_v_matches raises AssertionError when V differs."""
         if not torch.cuda.is_available():
             pytest.skip("CUDA not available")
         _try_load_or_skip()
-        from headkv._cpp_shadow import maybe_attach_shadow
+        from pyramidkv._cpp_shadow import maybe_attach_shadow
 
         H, D, F = 2, 16, 32
         device = "cuda:0"
 
-        os.environ["HEADKV_USE_CPP_PACK"] = "1"
+        os.environ["PYRAMIDKV_USE_CPP_PACK"] = "1"
         try:
             s = maybe_attach_shadow(
                 layer_idx=0, num_heads=H, head_dim=D, frame_seqlen=F,
@@ -275,4 +275,4 @@ class TestCppShadowHelper:
                 s.assert_v_matches(wrong_ref)
             assert s.mismatch_count == 1
         finally:
-            os.environ.pop("HEADKV_USE_CPP_PACK", None)
+            os.environ.pop("PYRAMIDKV_USE_CPP_PACK", None)

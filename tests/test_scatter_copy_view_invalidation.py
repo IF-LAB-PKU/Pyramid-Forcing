@@ -31,7 +31,7 @@ class TestScatterViewInvalidation:
         3. Replace the original tensor's storage (simulating _set_dynamic_store)
         4. Scatter using the pinned copy's data_ptr → should still be valid
         """
-        from headkv._scatter_ext import scatter_copy, scatter_available
+        from pyramidkv._scatter_ext import scatter_copy, scatter_available
 
         if not scatter_available():
             pytest.skip("CUDA scatter extension not available")
