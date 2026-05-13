@@ -6,13 +6,13 @@
 <p align="center">
   Jiayu Chen<sup>1</sup>
   &emsp;
-  Junbei Tang<sup>2*</sup>
+  Junbei Tang<sup>2</sup>
   &emsp;
-  Wenbiao Zhao<sup>3*</sup>
+  Wenbiao Zhao<sup>3</sup>
   &emsp;
   &hellip;
   &emsp;
-  <b>Xiang Chen<sup>1†</sup></b>
+  <b>Xiang Chen<sup>1</sup></b>
 </p>
 
 <p align="center">
@@ -21,12 +21,6 @@
   <sup>2</sup>South China University of Technology
   &emsp;
   <sup>3</sup>Xinjiang University
-</p>
-
-<p align="center">
-  <sub><sup>*</sup>Work performed during an internship at Peking University.
-  &emsp;
-  <sup>†</sup>Corresponding author.</sub>
 </p>
 
 <p align="center">
