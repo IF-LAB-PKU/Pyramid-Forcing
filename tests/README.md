@@ -2,9 +2,9 @@
 
 | Subset                 | Command                                         | Notes                                                |
 |------------------------|-------------------------------------------------|------------------------------------------------------|
-| CPU-safe (default)     | `uv run pytest tests/ -v -m "not gpu"`          | Skips GPU-required and `slow` tests.                 |
-| GPU integration        | `uv run pytest tests/ -v -m "gpu"`              | Needs CUDA + `flash-attn`. Verified on H200.         |
-| Slow integration       | `uv run pytest tests/ --run-slow -v`            | Full ~10 min integration suite (GPU required).       |
+| CPU-safe (default)     | `uv run --no-sync pytest tests/ -v -m "not gpu"`          | Skips GPU-required and `slow` tests.                 |
+| GPU integration        | `uv run --no-sync pytest tests/ -v -m "gpu"`              | Needs CUDA + `flash-attn`. Verified on H200.         |
+| Slow integration       | `uv run --no-sync pytest tests/ --run-slow -v`            | Full ~10 min integration suite (GPU required).       |
 
 ## Markers
 

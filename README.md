@@ -59,7 +59,7 @@ hf download gdhe17/Self-Forcing checkpoints/self_forcing_dmd.pt --local-dir .
 Single-GPU inference:
 
 ```bash
-uv run python inference.py \
+uv run --no-sync python inference.py \
     --config_path configs/pyramid-forcing.yaml \
     --checkpoint_path checkpoints/self_forcing_dmd.pt \
     --data_path prompts/MovieGenVideoBench_num32.txt \
