@@ -3,6 +3,31 @@
 <h3 align="center">Head-Aware Pyramid KV Cache Policy for High-Quality Long Video Generation</h3>
 </p>
 <p align="center">
+  Jiayu Chen<sup>1</sup>
+  &nbsp;·&nbsp;
+  Junbei Tang<sup>2*</sup>
+  &nbsp;·&nbsp;
+  Wenbiao Zhao<sup>3*</sup>
+  &nbsp;·&nbsp;
+  Maoliang Li<sup>1</sup>
+  &nbsp;·&nbsp;
+  Jiayi Luo<sup>4,5</sup>
+  <br>
+  Zihao Zheng<sup>1</sup>
+  &nbsp;·&nbsp;
+  Jiawei Yang<sup>1</sup>
+  &nbsp;·&nbsp;
+  Guojie Luo<sup>1</sup>
+  &nbsp;·&nbsp;
+  Xiang Chen<sup>1†</sup>
+  <br>
+  <sup>1</sup>Peking University &nbsp;&nbsp; <sup>2</sup>South China University of Technology &nbsp;&nbsp; <sup>3</sup>Xinjiang University
+  <br>
+  <sup>4</sup>Beihang University &nbsp;&nbsp; <sup>5</sup>Zhongguancun Academy
+  <br>
+  <sub><sup>*</sup>Work performed during an internship at Peking University. &nbsp;&nbsp; <sup>†</sup>Corresponding author.</sub>
+</p>
+<p align="center">
   <h3 align="center"><a href="https://if-lab-pku.github.io/Pyramid-Forcing/">Website</a> | <a href="https://github.com/if-lab-pku/Pyramid-Forcing">Code</a></h3>
 </p>
 
