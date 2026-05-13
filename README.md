@@ -4,13 +4,13 @@
 </p>
 
 <p align="center">
-  Jiayu Chen<sup>1</sup>
+  <b>Jiayu Chen<sup>1</sup></b>
   &emsp;
-  Junbei Tang<sup>2</sup>
+  <b>Junbei Tang<sup>2</sup></b>
   &emsp;
-  Wenbiao Zhao<sup>3</sup>
+  <b>Wenbiao Zhao<sup>3</sup></b>
   &emsp;
-  Maoliang Li<sup>1</sup>
+  <b>Maoliang Li<sup>1</sup></b>
   <br>
   <b>Jiayi Luo<sup>4,5</sup></b>
   &emsp;
@@ -24,15 +24,15 @@
 </p>
 
 <p align="center">
-  <sup>1</sup>Peking University
+  <sup>1</sup><b>Peking University</b>
   &emsp;
-  <sup>2</sup>South China University of Technology
+  <sup>2</sup><b>South China University of Technology</b>
   &emsp;
-  <sup>3</sup>Xinjiang University
+  <sup>3</sup><b>Xinjiang University</b>
   <br>
-  <sup>4</sup>Beihang University
+  <sup>4</sup><b>Beihang University</b>
   &emsp;
-  <sup>5</sup>Zhongguancun Academy
+  <sup>5</sup><b>Zhongguancun Academy</b>
 </p>
 
 <p align="center">
