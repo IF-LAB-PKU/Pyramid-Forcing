@@ -44,6 +44,10 @@ const PyramidForcingApp = () => {
 
   const chefPrompt = "A dynamic scene captured in the style of a vibrant food photography, showcasing a chef skillfully chopping onions in a bustling kitchen. The chef, a middle-aged man with a weathered face and determined expression, skillfully slices the onions with quick, practiced movements. He wears a white apron tied neatly around his waist and a chef's hat perched atop his head. The background is a well-equipped kitchen, with stainless steel appliances and countertops cluttered with various cooking tools and ingredients. Steam rises from a pot on the stove, and sunlight filters through the window, casting a warm glow. A medium shot with the chef at the center, capturing the intensity of his work.";
 
+  // Videos are hosted as GitHub Release assets to keep the repo small.
+  // To bump the asset set, upload to a new release tag and update this URL.
+  const videoBase = 'https://github.com/IF-LAB-PKU/Pyramid-Forcing/releases/download/demo-videos-v1';
+
   // Asset paths — see static/README.md for the full file map.
   const media = {
     heroFig: './static/images/Fig_1.webp',
@@ -53,39 +57,39 @@ const PyramidForcingApp = () => {
     // index in the filename matches the prompt's `index` column directly.
     movieGen: [
       {
-        src: './static/videos/pf30s-video_000.mp4',
+        src: `${videoBase}/pf30s-video_000.mp4`,
         prompt: 'A stylish woman strolls down a bustling Tokyo street, the warm glow of neon lights and animated city signs casting vibrant reflections. She wears a sleek black leather jacket paired with a flowing red dress and black boots, her black purse slung over her shoulder. Sunglasses perched on her nose and a bold red lipstick add to her confident, casual demeanor. The street is damp and reflective, creating a mirror-like effect that enhances the colorful lights and shadows. Pedestrians move about, adding to the lively atmosphere. The scene is captured in a dynamic medium shot with the woman walking slightly to one side, highlighting her graceful strides.',
       },
       {
-        src: './static/videos/pf30s-video_021.mp4',
+        src: `${videoBase}/pf30s-video_021.mp4`,
         prompt: 'A vibrant illustration in a whimsical cartoon style depicting a flock of paper airplanes fluttering through a dense jungle. The airplanes, resembling small birds, weave gracefully around towering trees, their wings fluttering gently. The jungle is lush and vibrant, with a variety of exotic plants and colorful flowers. The airplanes seem to migrate through the forest, creating a mesmerizing aerial dance. The background is rich with detailed textures, including sunlight filtering through the canopy, casting dappled shadows on the ground. A dynamic overhead view capturing the mid-flight action of the airplanes.',
       },
       {
-        src: './static/videos/pf30s-video_028.mp4',
+        src: `${videoBase}/pf30s-video_028.mp4`,
         prompt: 'A cyberpunk-style illustration depicting a lone robot navigating a neon-lit cityscape. The robot stands tall with sleek, metallic armor, adorned with blinking lights and wires. Its eyes, glowing with a deep blue hue, scan the surroundings with curiosity. The background features towering skyscrapers, holographic advertisements, and crowded streets filled with various cyborgs and humans. The air is thick with smoke and the hum of technology. A medium shot from a high-angle perspective, capturing both the robot and the bustling city environment.',
       },
       {
-        src: './static/videos/pf30s-video_048.mp4',
+        src: `${videoBase}/pf30s-video_048.mp4`,
         prompt: chefPrompt,
       },
       {
-        src: './static/videos/pf30s-video_110.mp4',
+        src: `${videoBase}/pf30s-video_110.mp4`,
         prompt: "A close-up shot of a young woman driving a car, lost in thought as she gazes ahead. Raindrops blur the view of a green forest through the car window. She wears a sleek raincoat and sunglasses, her expression contemplative. Her hands gently grip the steering wheel, and her fingers tap rhythmically against it. The interior of the car is dimly lit, with water droplets clinging to the windshield. The blurred green forest and rain create a sense of mystery and introspection. The photo has a cinematic quality, capturing the moment just before a decision is made. A close-up shot from inside the car, focusing on the driver.",
       },
       {
-        src: './static/videos/pf30s-video_062.mp4',
+        src: `${videoBase}/pf30s-video_062.mp4`,
         prompt: "A close-up shot of someone carefully pouring milk into a cup, with the milk flowing smoothly and filling the cup with a milky white color. The person's hand is steady, guiding the milk into the cup with precision. The background is blurred, showing a subtle kitchen setting with hints of cabinets and countertops. The photo has a soft, natural lighting effect, emphasizing the smoothness and elegance of the pouring action.",
       },
       {
-        src: './static/videos/pf30s-video_063.mp4',
+        src: `${videoBase}/pf30s-video_063.mp4`,
         prompt: 'A detailed oil painting in a romantic style, showcasing a young woman standing amidst a vibrant garden filled with blooming flowers. She wears a floral-patterned dress, her hair loosely tied with wildflowers adorning it. Her expression is one of serene joy, with a gentle smile on her lips. She is framed by a variety of colorful blooms, including roses, tulips, and daisies, which surround her in a natural, organic arrangement. The background features a soft, pastel-colored sky with fluffy clouds, and a gentle breeze rustling through the petals. A medium shot with a slightly tilted angle, capturing the essence of spring and renewal.',
       },
       {
-        src: './static/videos/pf30s-video_064.mp4',
+        src: `${videoBase}/pf30s-video_064.mp4`,
         prompt: "A cinematic scene from a classic western movie, featuring a rugged man riding a powerful horse through the vast Gobi Desert at sunset. The man, dressed in a dusty cowboy hat and a worn leather jacket, reins tightly on the horse's neck as he gallops across the golden sands. The sun sets dramatically behind them, casting long shadows and warm hues across the landscape. The background is filled with rolling dunes and sparse, rocky outcrops, emphasizing the harsh beauty of the desert. A dynamic wide shot from a low angle, capturing both the man and the expansive desert vista.",
       },
       {
-        src: './static/videos/pf30s-video_068.mp4',
+        src: `${videoBase}/pf30s-video_068.mp4`,
         prompt: "A charming illustration in a watercolor style of a young white rabbit wearing glasses and reading a newspaper. The rabbit has soft fur, large round ears, and gentle, curious eyes. It sits upright on a cozy armchair, one paw holding the newspaper and the other resting on its knee. The background features a warm living room with a fireplace, a few books on a side table, and a blurred view of a window with falling leaves. The rabbit's expression is one of focused interest, with a slight smile playing on its lips. A close-up shot from a slightly elevated angle, capturing the rabbit's detailed features and the newspaper's headlines.",
       },
     ],
@@ -96,19 +100,19 @@ const PyramidForcingApp = () => {
       {
         prompt: "A zoom-in shot focusing on the face of a young woman sitting on a bench in the middle of an empty school gym. The woman has long wavy brown hair cascading down her shoulders and soft, warm hazel eyes. She wears a simple white t-shirt and blue jeans, her hands resting gently on her knees. Her expression is serene, with a slight smile playing on her lips. The gymnasium is mostly empty, with only a few scattered bleachers and a basketball hoop in the background. The lighting is soft and natural, creating gentle shadows under her eyes and nose. The overall atmosphere is peaceful and contemplative.",
         cells: [
-          { src: './static/videos/rf30s-video_092.mp4', label: 'Rolling Forcing' },
-          { src: './static/videos/sf30s-video_092.mp4', label: 'Self Forcing' },
-          { src: './static/videos/df30s-video_092.mp4', label: 'SF + Deep Forcing' },
-          { src: './static/videos/pf30s-video_092.mp4', label: 'SF + Pyramid Forcing', highlight: true },
+          { src: `${videoBase}/rf30s-video_092.mp4`, label: 'Rolling Forcing' },
+          { src: `${videoBase}/sf30s-video_092.mp4`, label: 'Self Forcing' },
+          { src: `${videoBase}/df30s-video_092.mp4`, label: 'SF + Deep Forcing' },
+          { src: `${videoBase}/pf30s-video_092.mp4`, label: 'SF + Pyramid Forcing', highlight: true },
         ],
       },
       {
         prompt: 'A close-up shot of a steaming cappuccino in a ceramic cup, with a rich brown foam on top and a slight milk swirl pattern. The cup has a simple yet elegant design, with a white handle and a light brown body. The background is a cozy café with warm lighting, wooden tables, and a few patrons chatting in the corner. The cappuccino is freshly made, with a hint of steam rising from the surface, capturing the essence of a perfect morning beverage.',
         cells: [
-          { src: './static/videos/rf30s-video_057.mp4', label: 'Rolling Forcing' },
-          { src: './static/videos/sf30s-video_057.mp4', label: 'Self Forcing' },
-          { src: './static/videos/cf30s-video_057.mp4', label: 'Causal Forcing' },
-          { src: './static/videos/cfpf30s-video_057.mp4', label: 'CF + Pyramid Forcing', highlight: true },
+          { src: `${videoBase}/rf30s-video_057.mp4`, label: 'Rolling Forcing' },
+          { src: `${videoBase}/sf30s-video_057.mp4`, label: 'Self Forcing' },
+          { src: `${videoBase}/cf30s-video_057.mp4`, label: 'Causal Forcing' },
+          { src: `${videoBase}/cfpf30s-video_057.mp4`, label: 'CF + Pyramid Forcing', highlight: true },
         ],
       },
     ],
@@ -116,20 +120,20 @@ const PyramidForcingApp = () => {
       {
         prompt: 'A macro shot focusing on the face of a young woman with freckles, her expression intense as she looks intently for something. Her freckles are scattered across her cheeks and nose, adding a playful charm to her face. Her eyes are wide and slightly squinted, peering closely at the object of her search. Her hair is loose, framing her face gently, with strands falling over her forehead. The background is blurred, but you can make out the faint outline of a table or desk where she is searching. The texture of her skin is smooth and 细腻，带有淡淡的红润。A close-up shot from a very close angle, capturing the natural and focused expression of the young woman.',
         cells: [
-          { src: './static/videos/rf60s-video_095.mp4', label: 'Rolling Forcing' },
-          { src: './static/videos/sf60s-video_095.mp4', label: 'Self Forcing' },
-          { src: './static/videos/df60s-video_095.mp4', label: 'SF + Deep Forcing' },
-          { src: './static/videos/pf60s-video_095.mp4', label: 'SF + Pyramid Forcing', highlight: true },
+          { src: `${videoBase}/rf60s-video_095.mp4`, label: 'Rolling Forcing' },
+          { src: `${videoBase}/sf60s-video_095.mp4`, label: 'Self Forcing' },
+          { src: `${videoBase}/df60s-video_095.mp4`, label: 'SF + Deep Forcing' },
+          { src: `${videoBase}/pf60s-video_095.mp4`, label: 'SF + Pyramid Forcing', highlight: true },
         ],
       },
       {
         // Row 058 is the CF-baseline row; the +PF column is the cf+pf augmented clip.
         prompt: 'A vibrant tropical fish swimming gracefully among colorful coral reefs in a clear, turquoise ocean. The fish has bright blue and yellow scales with a small, distinctive orange spot on its side, its fins moving fluidly. The coral reefs are alive with a variety of marine life, including small schools of colorful fish and sea turtles gliding by. The water is crystal clear, allowing for a view of the sandy ocean floor below. The reef itself is adorned with a mix of hard and soft corals in shades of red, orange, and green. The photo captures the fish from a slightly elevated angle, emphasizing its lively movements and the vivid colors of its surroundings. A close-up shot with dynamic movement.',
         cells: [
-          { src: './static/videos/rf60s-video_058.mp4', label: 'Rolling Forcing' },
-          { src: './static/videos/sf60s-video_058.mp4', label: 'Self Forcing' },
-          { src: './static/videos/cf60s-video_058.mp4', label: 'Causal Forcing' },
-          { src: './static/videos/cfpf60s-video_058.mp4', label: 'CF + Pyramid Forcing', highlight: true },
+          { src: `${videoBase}/rf60s-video_058.mp4`, label: 'Rolling Forcing' },
+          { src: `${videoBase}/sf60s-video_058.mp4`, label: 'Self Forcing' },
+          { src: `${videoBase}/cf60s-video_058.mp4`, label: 'Causal Forcing' },
+          { src: `${videoBase}/cfpf60s-video_058.mp4`, label: 'CF + Pyramid Forcing', highlight: true },
         ],
       },
     ],
@@ -138,10 +142,10 @@ const PyramidForcingApp = () => {
       {
         prompt: 'A vibrant illustration in a whimsical cartoon style depicting a flock of paper airplanes fluttering through a dense jungle. The airplanes, resembling small birds, weave gracefully around towering trees, their wings fluttering gently. The jungle is lush and vibrant, with a variety of exotic plants and colorful flowers. The airplanes seem to migrate through the forest, creating a mesmerizing aerial dance. The background is rich with detailed textures, including sunlight filtering through the canopy, casting dappled shadows on the ground. A dynamic overhead view capturing the mid-flight action of the airplanes.',
         cells: [
-          { src: './static/videos/sf30s-video_021.mp4', label: 'Self Forcing' },
-          { src: './static/videos/Ablation-1HC30s-video_021.mp4', label: '+ Head Classify' },
-          { src: './static/videos/Ablation-2RC30s-video_021.mp4', label: '+ Ragged Cache' },
-          { src: './static/videos/pf30s-video_021.mp4', label: 'Head + Pyramid KV' },
+          { src: `${videoBase}/sf30s-video_021.mp4`, label: 'Self Forcing' },
+          { src: `${videoBase}/Ablation-1HC30s-video_021.mp4`, label: '+ Head Classify' },
+          { src: `${videoBase}/Ablation-2RC30s-video_021.mp4`, label: '+ Ragged Cache' },
+          { src: `${videoBase}/pf30s-video_021.mp4`, label: 'Head + Pyramid KV' },
         ],
       },
     ],
