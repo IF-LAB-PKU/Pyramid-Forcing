@@ -98,7 +98,7 @@ CUDA_VISIBLE_DEVICES=0 uv run --no-sync python inference.py \
     --use_ema
 ```
 Note:
-* `configs/pyramid-forcing.yaml` enables per-head adaptive KV with the recommended preset (osc: sink1 + cyclic6 + recent4; compact: sink3 + stride6 + recent4; sparse: sink3 + recent4). Override `--num_output_frames` for longer clips; the cache auto-allocates based on this value.
+* `configs/pyramid-forcing.yaml` is the recommended head-aware preset used in the paper. Override `--num_output_frames` for longer clips; the cache auto-allocates based on this value.
 
 ### Self Forcing Baseline
 Example inference script:
