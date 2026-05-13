@@ -42,7 +42,7 @@ Pyramid Forcing is a training-free, head-aware pyramidal KV cache framework that
 ---
 
 ## Highlights
-- **SCI-SOR Head Classification** uses sign-only statistics (Sign Consistency Index + Sign Oscillation Rate) instead of attention magnitudes, sorting the 30 × 12 attention heads into Compact / Sparse / Fluctuating groups in a threshold-stable way.
+- **Offline Tri-Pattern Head Classification** sorts the 30 × 12 attention heads into **Anchor / Wave / Veil** groups using sign-rate statistics on pre-softmax logits plus frequency-domain periodicity (FFT), with a mean-score fallback for any remaining heads. Classification runs once per model on a small calibration set (32 prompts × 15 s) and is reused across all inference.
 
 - **Per-Head Adaptive KV Cache** composes `[sink + middle + recent]` segments per head with cyclic / stride / lag middle strategies, served by a FlashAttention varlen kernel over ragged per-head KV lengths — delivering ~92% KV memory savings and ~12.5× attention compute reduction with dynamic RoPE remapped into the 21-frame training range.
 
