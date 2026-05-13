@@ -11,9 +11,7 @@
   Wenbiao Zhao<sup>3</sup>
   &emsp;
   Maoliang Li<sup>1</sup>
-</p>
-
-<p align="center">
+  <br>
   <b>Jiayi Luo<sup>4,5</sup></b>
   &emsp;
   <b>Zihao Zheng<sup>1</sup></b>
