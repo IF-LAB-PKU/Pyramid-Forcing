@@ -44,11 +44,11 @@ Pyramid Forcing is a training-free, head-aware pyramidal KV cache framework that
 ## Highlights
 - **Offline Tri-Pattern Head Classification** sorts the 30 × 12 attention heads into **Anchor / Wave / Veil** groups using sign-rate statistics on pre-softmax logits plus frequency-domain periodicity (FFT), with a mean-score fallback for any remaining heads. Classification runs once per model on a small calibration set (32 prompts × 15 s) and is reused across all inference.
 
-- **Per-Head Adaptive KV Cache** composes `[sink + middle + recent]` segments per head with cyclic / stride / lag middle strategies, served by a FlashAttention varlen kernel over ragged per-head KV lengths — delivering ~92% KV memory savings and ~12.5× attention compute reduction with dynamic RoPE remapped into the 21-frame training range.
+- **Pyramid KVCache Policies** assign three behavior-specific cache strategies over a shared `[sink + recent]` backbone — **Adaptive Strided Sliding Window** for Anchor Heads, **Periodic Sampling** for Wave Heads, and **Cache Merging** for Veil Heads — served by a **Ragged-Cache Attention** kernel (FlashInfer / FlashAttention varlen) that handles heterogeneous per-head cache lengths with dynamic RoPE remapped into the training position range. On 60-second Self Forcing, this lifts VBench-Long from 77.87 to 81.21 at comparable latency and peak GPU memory.
 
 ## Requirements
 We tested this repo on the following setup:
-* Nvidia GPU with at least 80 GB memory (developed on H200; long sequences are memory-bound).
+* Nvidia GPU with at least 48 GB memory (evaluated on NVIDIA H200).
 * Linux operating system.
 * Python 3.10, CUDA 12.x, PyTorch 2.5.x, `flash-attn` 2.8.3.
 
