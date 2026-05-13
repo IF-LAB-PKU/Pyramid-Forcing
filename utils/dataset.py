@@ -2,11 +2,14 @@ from utils.lmdb import get_array_shape_from_lmdb, retrieve_row_from_lmdb
 from torch.utils.data import Dataset
 import numpy as np
 import torch
-import lmdb
 import json
 from pathlib import Path
 from PIL import Image
 import os
+
+# `lmdb` is only needed by the training-time LMDB datasets below; it's
+# imported lazily inside their __init__ so inference users (who only need
+# TextDataset / TextImagePairDataset) don't have to install it.
 
 
 class TextDataset(Dataset):
@@ -36,6 +39,7 @@ class TextDataset(Dataset):
 
 class ODERegressionLMDBDataset(Dataset):
     def __init__(self, data_path: str, max_pair: int = int(1e8)):
+        import lmdb
         self.env = lmdb.open(data_path, readonly=True,
                              lock=False, readahead=False, meminit=False)
 
@@ -71,6 +75,7 @@ class ODERegressionLMDBDataset(Dataset):
 
 class ShardingLMDBDataset(Dataset):
     def __init__(self, data_path: str, max_pair: int = int(1e8)):
+        import lmdb
         self.envs = []
         self.index = []
 
