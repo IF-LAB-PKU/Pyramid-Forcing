@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main, release]
+  pull_request:
+
+jobs:
+  cpu-tests:
+    name: pytest (CPU-only)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: latest
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # CUDA-only deps (flash-attn, torch+cu121) can't be installed in a
+      # GitHub-hosted CPU runner. Install the project's CPU-compatible
+      # dependency surface: enough to import wan/, pipeline/, utils/ so
+      # pytest can collect tests; the CUDA bodies themselves are guarded
+      # at runtime and skipped via `-m "not gpu"`.
+      - name: Install CPU deps
+        run: |
+          uv pip install --system \
+            torch==2.5.1+cpu torchvision==0.20.1+cpu \
+            --index-url https://download.pytorch.org/whl/cpu
+          uv pip install --system \
+            pytest>=9.0 numpy>=1.24 omegaconf>=2.3 einops>=0.8 \
+            tqdm>=4.67 pyyaml>=6.0 huggingface-hub>=0.36 \
+            transformers>=4.49.0 diffusers>=0.31.0 accelerate>=1.1.1 \
+            av>=13.1.0 imageio>=2.37.2 imageio-ffmpeg>=0.6.0 \
+            ftfy>=6.3.1 regex>=2024.0 sentencepiece>=0.2.1 \
+            tokenizers>=0.20.3 opencv-python>=4.9.0.80 \
+            pillow>=12.0.0 pydantic==2.10.6 easydict>=1.13
+
+      - name: Run CPU-safe pytest
+        env:
+          ADAHEAD_TEST_SEED: "0"
+        run: |
+          pytest tests/ -v -m "not gpu" --no-header
+
+  privacy-scan:
+    name: privacy regression scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Grep for known leak patterns
+        run: |
+          set -e
+          # Match the in-house path / hostname tokens we scrubbed at
+          # release-prep time. Excludes the release-prep plan itself
+          # (deleted in a later commit) and the .git/ tree.
+          PATTERNS='chenjiayu|/data/chenjiayu|/home/winbeau|winbeau/AdaHead|dasys-h200x8'
+          if grep -rEn "${PATTERNS}" \
+              --include='*.py' --include='*.md' --include='*.yaml' \
+              --include='*.sh'  --include='*.cc' --include='*.cu' \
+              --include='*.cpp' --include='*.h'  --include='*.toml' \
+              . ; then
+            echo "::error::Found leaked path/hostname token in tracked files."
+            exit 1
+          fi
+          echo "ok — no leak tokens found"

@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Models & Checkpoints
+wan_models/
+checkpoints/
+*.pt
+*.pth
+*.safetensors
+
+# Outputs
+videos/
+logs/
+wandb/
+notebooks/runs/
+classifier/
+
+# Data
+# prompts/
+
+# Environment
+.env
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Experiment outputs
+cache/
+figures/
+
+
+# Jupyter
+.ipynb_checkpoints/
+jupyter.log
+jupyter.pid
+notebooks/attention_analysis/
+
+# System
+.DS_Store
+*.log
+*-hello.txt
+test-cred
+.python-version
+
+# Local dev scratch
+tmp-log*.txt
+terminal-output*.txt
+*.local.md
+AGENTS.md
+docs-internal/
+
+# Agent / IDE scratch — never commit
+.codex
+.claude/
+.playwright-mcp/
+.trees/
+CLAUDE.md
+page-view.png

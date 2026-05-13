@@ -1,0 +1,29 @@
+Pyramid Forcing
+Copyright 2026 The Pyramid Forcing Authors
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this software except in compliance with the License. You may obtain a
+copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+This product includes software derived from third-party projects:
+
+  - Wan2.1 (https://github.com/Wan-Video/Wan2.1)
+      Copyright 2024 The Wan-Video Authors (Alibaba).
+      Licensed under the Apache License, Version 2.0.
+      The derivative code lives under wan/ in this repository; see
+      wan/README.md for a description of local modifications.
+
+  - CausVid (https://github.com/tianweiy/CausVid)
+      Copyright 2024 Tianwei Yin et al.
+      This project draws on the causal distillation framework introduced
+      by CausVid for autoregressive video diffusion.
+
+  - Self-Forcing (https://github.com/guandeh17/Self-Forcing)
+      Copyright 2024 Guande He et al.
+      Licensed under the Apache License, Version 2.0.
+      The Self-Forcing DMD checkpoint is downloaded separately from
+      Hugging Face (gdhe17/Self-Forcing) and is not redistributed here.
+
+See LICENSE for the full Apache-2.0 license text.

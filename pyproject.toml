@@ -1,0 +1,114 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyramid-forcing"
+version = "0.1.0"
+description = "Pyramid Forcing: head-aware pyramidal KV cache for Wan2.1 long video generation"
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+
+# Core inference dependencies. Keep this list lean — only what
+# inference.py / pipeline / headkv / wan / utils / model actually import.
+# Optional extras (training, dev tooling, notebooks) live under
+# [project.optional-dependencies] below.
+dependencies = [
+    "accelerate>=1.1.1",
+    "av>=13.1.0",
+    "diffusers>=0.31.0",
+    "easydict>=1.13",
+    "einops>=0.8.1",
+    "flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.5cxx11abiFALSE-cp310-cp310-linux_x86_64.whl ; sys_platform == 'linux' and platform_machine == 'x86_64' and python_version == '3.10'",
+    "ftfy>=6.3.1",
+    "huggingface-hub[cli]>=0.36.0",
+    "imageio>=2.37.2",
+    "imageio-ffmpeg>=0.6.0",
+    "numpy>=1.24.4",
+    "omegaconf>=2.3.0",
+    "opencv-python>=4.9.0.80",
+    "packaging>=25.0",
+    "pillow>=12.0.0",
+    "pydantic==2.10.6",
+    "regex>=2024.0",
+    "requests>=2.32.5",
+    "sentencepiece>=0.2.1",
+    "tokenizers>=0.20.3",
+    "torch>=2.5.0,<2.6",
+    "torchao==0.6.1",
+    "torchvision>=0.20.0,<0.21",
+    "torchaudio>=2.5.0,<2.6",
+    "tqdm>=4.67.1",
+    "transformers>=4.49.0",
+]
+
+[project.optional-dependencies]
+# Training the Self-Forcing teacher from scratch (research-only path).
+train = [
+    "wandb>=0.23.1",
+    "lmdb>=1.7.5",
+    "dashscope>=1.25.3",
+]
+
+# Test runner and formatters. Use `uv sync --extra dev` to install.
+dev = [
+    "pytest>=9.0.2",
+    "black>=25.12.0",
+    "isort>=7.0.0",
+]
+
+# Jupyter notebooks and offline analysis tooling.
+notebook = [
+    "jupyter>=1.1.1",
+    "jupyterlab-code-formatter>=3.0.2",
+    "ipykernel>=7.1.0",
+    "papermill>=2.6.0",
+    "matplotlib>=3.10.7",
+    "seaborn>=0.13.2",
+    "nvitop>=1.6.2",
+]
+
+# Convenience meta-extra: install everything.
+all = [
+    "pyramid-forcing[train,dev,notebook]",
+]
+
+[tool.uv]
+# Constrain dependency resolution to Linux x86_64 (where the flash-attn
+# wheel and torch+cu121 wheels are available).
+environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
+]
+
+# PyTorch wheel index (CUDA 12.1). Marked explicit so it only resolves
+# the packages we route through it below.
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
+
+[[tool.uv.index]]
+name = "nvidia"
+url = "https://pypi.ngc.nvidia.com"
+
+[tool.uv.sources]
+torch = { index = "pytorch" }
+torchvision = { index = "pytorch" }
+torchaudio = { index = "pytorch" }
+
+[tool.hatch.build.targets.wheel]
+only-include = ["."]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers"
+# Add the repo root to sys.path so `from headkv ...`, `from pipeline ...`,
+# etc. resolve without a `pip install -e .` step (CI installs only the
+# minimal CPU deps).
+pythonpath = ["."]
+markers = [
+    "gpu: tests that require a CUDA GPU",
+    "slow: tests that take more than a few seconds (use --run-slow to include)",
+]
