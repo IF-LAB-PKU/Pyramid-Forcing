@@ -126,7 +126,7 @@ Note:
 * `configs/self-forcing.yaml` runs the unmodified Self Forcing / Causal Forcing baseline (no Pyramid Forcing); use this for ablations and apples-to-apples comparisons against the Pyramid Forcing configs.
 
 ## Acknowledgements
-This codebase is built on top of the open-source implementations of [Self Forcing](https://github.com/guandeh17/Self-Forcing), [Causal Forcing](https://github.com/thu-ml/Causal-Forcing), and [Wan2.1](https://github.com/Wan-Video/Wan2.1) (Apache-2.0). The Self Forcing checkpoint is downloaded from HuggingFace (`gdhe17/Self-Forcing`) and is not redistributed here.
+This codebase is built on top of the open-source implementations of [Self Forcing](https://github.com/guandeh17/Self-Forcing), [Causal Forcing](https://github.com/thu-ml/Causal-Forcing), and [Wan2.1](https://github.com/Wan-Video/Wan2.1) (Apache-2.0).
 
 ## Citation
 If you find this codebase useful for your research, please kindly cite our paper:
