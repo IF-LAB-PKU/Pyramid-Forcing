@@ -33,6 +33,10 @@ dependencies = [
     "regex>=2024.0",
     "requests>=2.32.5",
     "sentencepiece>=0.2.1",
+    # Triton's runtime build path and headkv's C++ JIT extension both
+    # import `setuptools` at runtime. uv-managed venvs don't ship it by
+    # default, so pin it here.
+    "setuptools>=68.0",
     "tokenizers>=0.20.3",
     "torch>=2.5.0,<2.6",
     "torchao==0.6.1",
