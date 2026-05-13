@@ -92,14 +92,7 @@ research-only and not required for inference.
 
 ## Citation
 
-```bibtex
-@article{chen2026pyramidforcing,
-  title  = {Pyramid Forcing: Head-Aware Pyramid KV Cache Policy for High-Quality Long Video Generation},
-  author = {Chen, Jiayu and Tang, Junbei and Zhao, Wenbiao and Li, Maoliang and
-            Luo, Jiayi and Zheng, Zihao and Yang, Jiawei and Luo, Guojie and Chen, Xiang},
-  year   = {2026},
-}
-```
+BibTeX coming soon.
 
 ## Acknowledgements
 
