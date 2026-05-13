@@ -10,7 +10,17 @@
   &emsp;
   Wenbiao Zhao<sup>3</sup>
   &emsp;
-  &hellip;
+  Maoliang Li<sup>1</sup>
+</p>
+
+<p align="center">
+  <b>Jiayi Luo<sup>4,5</sup></b>
+  &emsp;
+  <b>Zihao Zheng<sup>1</sup></b>
+  &emsp;
+  <b>Jiawei Yang<sup>1</sup></b>
+  &emsp;
+  <b>Guojie Luo<sup>1</sup></b>
   &emsp;
   <b>Xiang Chen<sup>1</sup></b>
 </p>
@@ -21,6 +31,10 @@
   <sup>2</sup>South China University of Technology
   &emsp;
   <sup>3</sup>Xinjiang University
+  <br>
+  <sup>4</sup>Beihang University
+  &emsp;
+  <sup>5</sup>Zhongguancun Academy
 </p>
 
 <p align="center">
