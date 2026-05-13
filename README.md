@@ -30,10 +30,7 @@ We tested this repo on the following setup:
 Other hardware setups may also work but have not been tested.
 
 ## Installation
-Demo videos under `demo/static/videos/` are stored via Git LFS. Install `git-lfs` (`apt install git-lfs` / `brew install git-lfs`) and run `git lfs install` **before** cloning — otherwise the mp4 files come down as ~130-byte pointer stubs. To skip the demo assets entirely, prefix the clone with `GIT_LFS_SKIP_SMUDGE=1`.
-
 ```
-git lfs install
 git clone https://github.com/if-lab-pku/Pyramid-Forcing.git
 cd Pyramid-Forcing
 uv sync
