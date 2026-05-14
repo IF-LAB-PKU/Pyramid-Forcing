@@ -253,7 +253,7 @@ const PyramidForcingApp = () => {
       <div style={{
         display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 56, flexWrap: 'wrap',
       }}>
-        <Btn icon={arxivIcon} label="arXiv" href="https://arxiv.org/" bg="#B31B1B" />
+        <Btn icon={arxivIcon} label="arXiv" href="https://arxiv.org/abs/2605.13111" bg="#B31B1B" />
         <Btn icon={githubIcon} label="Code" href="https://github.com/IF-LAB-PKU/Pyramid-Forcing" />
       </div>
 
@@ -537,7 +537,12 @@ const PyramidForcingApp = () => {
             background: tint, border: `1px solid ${rule}`,
             padding: '14px 16px', color: ink, margin: 0,
             whiteSpace: 'pre-wrap',
-          }}>{`Coming soon.`}</pre>
+          }}>{`@article{chen2026pyramidforcing,
+  title={Pyramid Forcing: Head-Aware Pyramid KV Cache Policy for High-Quality Long Video Generation},
+  author={Chen, Jiayu and Tang, Junbei and Zhao, Wenbiao and Li, Maoliang and Luo, Jiayi and Zheng, Zihao and Yang, Jiawei and Luo, Guojie and Chen, Xiang},
+  journal={arXiv preprint arXiv:2605.13111},
+  year={2026}
+}`}</pre>
         </div>
         <div>
           <div style={{
