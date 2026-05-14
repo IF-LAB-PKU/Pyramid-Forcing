@@ -40,6 +40,8 @@
     <a href="https://if-lab-pku.github.io/Pyramid-Forcing/">Website</a>
     &nbsp;|&nbsp;
     <a href="https://github.com/if-lab-pku/Pyramid-Forcing">Code</a>
+    &nbsp;|&nbsp;
+    <a href="https://arxiv.org/abs/2605.13111">Paper</a>
   </h3>
 </p>
 
