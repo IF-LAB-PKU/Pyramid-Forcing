@@ -130,6 +130,11 @@ This codebase is built on top of the open-source implementations of [Self Forcin
 
 ## Citation
 If you find this codebase useful for your research, please kindly cite our paper:
-```
-BibTeX coming soon.
+```bibtex
+@article{chen2026pyramidforcing,
+  title={Pyramid Forcing: Head-Aware Pyramid KV Cache Policy for High-Quality Long Video Generation},
+  author={Chen, Jiayu and Tang, Junbei and Zhao, Wenbiao and Li, Maoliang and Luo, Jiayi and Zheng, Zihao and Yang, Jiawei and Luo, Guojie and Chen, Xiang},
+  journal={arXiv preprint arXiv:2605.13111},
+  year={2026}
+}
 ```
