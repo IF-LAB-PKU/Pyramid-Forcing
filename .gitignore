@@ -65,3 +65,8 @@ docs-internal/
 .trees/
 CLAUDE.md
 page-view.png
+
+# Local paper copies fetched for reference (HTML/PDF/MD from arXiv etc.)
+paper/
+*.arxiv.html
+*.arxiv.md
