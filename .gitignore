@@ -70,3 +70,6 @@ page-view.png
 paper/
 *.arxiv.html
 *.arxiv.md
+
+# Internal issue-response reports (drafts + rendered HTML)
+issue-reports/
