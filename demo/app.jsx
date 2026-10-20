@@ -220,8 +220,8 @@ const PyramidForcingApp = () => {
         color: ink, marginBottom: 8, lineHeight: 1.7,
       }}>
         Jiayu Chen<sup>1,*</sup>
-        {' '}Wenbiao Zhao<sup>3,*&ddagger;</sup>
-        {' '}Junbei Tang<sup>2,&ddagger;</sup>
+        {' '}Wenbiao Zhao<sup>2,*&ddagger;</sup>
+        {' '}Junbei Tang<sup>3,&ddagger;</sup>
         {' '}Maoliang Li<sup>1</sup>
         <br/>
         Jiayi Luo<sup>4,5</sup>
@@ -235,8 +235,8 @@ const PyramidForcingApp = () => {
         color: muted, marginBottom: 8, lineHeight: 1.6,
       }}>
         <sup>1</sup>Peking University{' '}
-        <sup>2</sup>South China University of Technology{' '}
-        <sup>3</sup>Xinjiang University
+        <sup>2</sup>Xinjiang University{' '}
+        <sup>3</sup>South China University of Technology
         <br/>
         <sup>4</sup>Beihang University{' '}
         <sup>5</sup>Zhongguancun Academy

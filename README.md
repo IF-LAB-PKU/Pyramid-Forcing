@@ -6,9 +6,9 @@
 <p align="center">
   <b>Jiayu Chen<sup>1,*</sup></b>
   &emsp;
-  <b>Wenbiao Zhao<sup>3,*</sup></b>
+  <b>Wenbiao Zhao<sup>2,*</sup></b>
   &emsp;
-  <b>Junbei Tang<sup>2</sup></b>
+  <b>Junbei Tang<sup>3</sup></b>
   &emsp;
   <b>Maoliang Li<sup>1</sup></b>
   <br>
@@ -26,9 +26,9 @@
 <p align="center">
   <sup>1</sup><b>Peking University</b>
   &emsp;
-  <sup>2</sup><b>South China University of Technology</b>
+  <sup>2</sup><b>Xinjiang University</b>
   &emsp;
-  <sup>3</sup><b>Xinjiang University</b>
+  <sup>3</sup><b>South China University of Technology</b>
   <br>
   <sup>4</sup><b>Beihang University</b>
   &emsp;
