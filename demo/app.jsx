@@ -219,9 +219,9 @@ const PyramidForcingApp = () => {
         textAlign: 'center', fontFamily: serif, fontSize: 19,
         color: ink, marginBottom: 8, lineHeight: 1.7,
       }}>
-        Jiayu Chen<sup>1</sup>
-        {' '}Junbei Tang<sup>2,*</sup>
-        {' '}Wenbiao Zhao<sup>3,*</sup>
+        Jiayu Chen<sup>1,*</sup>
+        {' '}Wenbiao Zhao<sup>3,*&ddagger;</sup>
+        {' '}Junbei Tang<sup>2,&ddagger;</sup>
         {' '}Maoliang Li<sup>1</sup>
         <br/>
         Jiayi Luo<sup>4,5</sup>
@@ -245,7 +245,8 @@ const PyramidForcingApp = () => {
         textAlign: 'center', fontFamily: serif, fontSize: 14,
         color: muted, marginBottom: 36, lineHeight: 1.6,
       }}>
-        <sup>*</sup>Work performed during an internship at Peking University.{' '}
+        <sup>*</sup>Equal contribution.{' '}
+        <sup>&ddagger;</sup>Work performed during an internship at Peking University.{' '}
         <sup>&dagger;</sup>Corresponding author.
       </div>
 
@@ -539,7 +540,7 @@ const PyramidForcingApp = () => {
             whiteSpace: 'pre-wrap',
           }}>{`@article{chen2026pyramidforcing,
   title={Pyramid Forcing: Head-Aware Pyramid KV Cache Policy for High-Quality Long Video Generation},
-  author={Chen, Jiayu and Tang, Junbei and Zhao, Wenbiao and Li, Maoliang and Luo, Jiayi and Zheng, Zihao and Yang, Jiawei and Luo, Guojie and Chen, Xiang},
+  author={Chen, Jiayu and Zhao, Wenbiao and Tang, Junbei and Li, Maoliang and Luo, Jiayi and Zheng, Zihao and Yang, Jiawei and Luo, Guojie and Chen, Xiang},
   journal={arXiv preprint arXiv:2605.13111},
   year={2026}
 }`}</pre>

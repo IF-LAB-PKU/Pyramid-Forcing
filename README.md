@@ -4,11 +4,11 @@
 </p>
 
 <p align="center">
-  <b>Jiayu Chen<sup>1</sup></b>
+  <b>Jiayu Chen<sup>1,*</sup></b>
+  &emsp;
+  <b>Wenbiao Zhao<sup>3,*</sup></b>
   &emsp;
   <b>Junbei Tang<sup>2</sup></b>
-  &emsp;
-  <b>Wenbiao Zhao<sup>3</sup></b>
   &emsp;
   <b>Maoliang Li<sup>1</sup></b>
   <br>
@@ -33,6 +33,10 @@
   <sup>4</sup><b>Beihang University</b>
   &emsp;
   <sup>5</sup><b>Zhongguancun Academy</b>
+</p>
+
+<p align="center">
+  <sup>*</sup>Equal contribution.
 </p>
 
 <p align="center">
@@ -135,7 +139,7 @@ If you find this codebase useful for your research, please kindly cite our paper
 ```bibtex
 @article{chen2026pyramidforcing,
   title={Pyramid Forcing: Head-Aware Pyramid KV Cache Policy for High-Quality Long Video Generation},
-  author={Chen, Jiayu and Tang, Junbei and Zhao, Wenbiao and Li, Maoliang and Luo, Jiayi and Zheng, Zihao and Yang, Jiawei and Luo, Guojie and Chen, Xiang},
+  author={Chen, Jiayu and Zhao, Wenbiao and Tang, Junbei and Li, Maoliang and Luo, Jiayi and Zheng, Zihao and Yang, Jiawei and Luo, Guojie and Chen, Xiang},
   journal={arXiv preprint arXiv:2605.13111},
   year={2026}
 }
