@@ -91,10 +91,6 @@ name = "pytorch"
 url = "https://download.pytorch.org/whl/cu121"
 explicit = true
 
-[[tool.uv.index]]
-name = "nvidia"
-url = "https://pypi.ngc.nvidia.com"
-
 [tool.uv.sources]
 torch = { index = "pytorch" }
 torchvision = { index = "pytorch" }
